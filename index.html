@@ -4,42 +4,46 @@
 <meta charset="UTF-8" />
 <title>Coastline Mobile Detailing</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Booking, CRM, invoicing, and financial reporting platform for mobile auto detailing businesses." />
+<meta name="description" content="Business management platform for Coastline Mobile Detailing." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" />
 <style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; min-height: 100%; }
-  body { font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
-  #root { min-height: 100vh; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body { -webkit-font-smoothing: antialiased; }
+#root { min-height: 100vh; }
 </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.383.0?external=react",
-    "recharts": "https://esm.sh/recharts@2.12.7?external=react,react-dom"
-  }
-}
-</script>
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-type="module" data-presets="react">
-import React, { useState, useMemo, useEffect } from "react";
-import {
+
+<!-- React -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Recharts (depends on React + D3 submodules, UMD bundle includes them) -->
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<!-- Lucide icons UMD -->
+<script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js"></script>
+<!-- Babel standalone for JSX transpilation -->
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+// Lucide icons
+const { 
   LayoutDashboard, CalendarDays, Users, Settings, Search, Moon, Sun,
   Plus, X, Phone, Mail, MapPin, Car, DollarSign, TrendingUp, TrendingDown,
   Clock, CheckCircle2, AlertCircle, Star, ChevronLeft, ChevronRight,
   Sparkles, Wallet, Receipt, Percent, Send, Edit3, MoreHorizontal,
   FileText, Package, Bell, BarChart3, Download, AlertTriangle, Award
-} from "lucide-react";
-import {
+} = lucide;
+
+// Recharts components
+const {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from "recharts";
-import ReactDOM from "react-dom/client";
+} = Recharts;
 
 /* ---------------------------------- THEME ---------------------------------- */
 
@@ -1152,6 +1156,7 @@ function App() {
     </div>
   );
 }
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
