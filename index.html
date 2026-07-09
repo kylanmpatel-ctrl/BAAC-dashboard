@@ -59,7 +59,7 @@ function PasswordGate({children}) {
     }}>
       <div style={{
         background:"#111111", border:"1px solid #2A2A2A",
-        borderRadius:16, padding:"44px 40px", width:380, maxWidth:"90vw",
+        borderRadius:16, padding:"44px 40px", width:360, maxWidth:"92vw",
         display:"flex", flexDirection:"column", alignItems:"center", gap:0,
       }}>
         {/* Logo mark */}
@@ -357,7 +357,7 @@ function MiniStat({t,label,value}){
 
 /* ── DASHBOARD ─────────────────────────────────────────────────── */
 function invNum(id){return"INV-"+(1030+parseInt(id.replace(/\D/g,""),10));}
-function Dashboard({t}){
+function Dashboard({t,mobile}){
   const today=new Date();
   const todayBks=BOOKINGS.filter(b=>sameDay(b.date,today));
   const todayRev=todayBks.reduce((s,b)=>s+b.total,0);
@@ -392,14 +392,14 @@ function Dashboard({t}){
         <KpiCard t={t} label="Active customers" value="0" sub="no data yet" trend="up" icon="users"/>
         <KpiCard t={t} label="Avg ticket" value="$0" sub="no data yet" trend="up" icon="sparkle"/>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1.6fr 1fr",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"1.6fr 1fr",gap:14}}>
         <ChCard t={t} title="Revenue & profit trend" height={260}><LineChartCJ data={REVENUE_TREND} t={t}/></ChCard>
         <ChCard t={t} title="Expense breakdown" height={260}><DoughnutCJ data={[
           {name:"Payroll",value:4800},{name:"Chemicals",value:530},{name:"Equipment",value:620},
           {name:"Insurance",value:410},{name:"Marketing",value:220},{name:"Fuel",value:145}
         ]} t={t}/></ChCard>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"1fr 1fr",gap:14}}>
         <ChCard t={t} title="Revenue by service" height={220}><BarChartCJ data={bySvc} label="Revenue" color="#3457D5" t={t}/></ChCard>
         <Card t={t} style={{padding:18}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
@@ -416,7 +416,7 @@ function Dashboard({t}){
 }
 
 /* ── BOOKINGS ──────────────────────────────────────────────────── */
-function Bookings({t}){
+function Bookings({t,mobile}){
   const [filter,setFilter]=useState("All");
   const [sel,setSel]=useState(null);
   const statuses=["All",...Object.keys(STATUS)];
@@ -431,7 +431,7 @@ function Bookings({t}){
           </button>
         ))}
       </div>
-      <Card t={t} style={{overflow:"hidden"}}>
+      <div style={{overflowX:"auto"}}><Card t={t} style={{overflow:"hidden",minWidth:mobile?580:0}}>
         <div style={{display:"grid",gridTemplateColumns:"1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr",padding:"11px 18px",borderBottom:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase"}}>
           <div>Customer / Service</div><div>Vehicle</div><div>Date</div><div>Employee</div><div>Total</div><div>Status</div>
         </div>
@@ -448,7 +448,7 @@ function Bookings({t}){
             </div>
           );
         })}
-      </Card>
+      </Card></div>
       {sel&&(
         <Drawer t={t} onClose={()=>setSel(null)} title={sel.service}>
           <Badge t={t} k={STATUS[sel.status]}>{sel.status}</Badge>
@@ -486,7 +486,7 @@ function Bookings({t}){
 }
 
 /* ── CUSTOMERS ─────────────────────────────────────────────────── */
-function Customers({t}){
+function Customers({t,mobile}){
   const [q,setQ]=useState("");
   const [sel,setSel]=useState(null);
   const filtered=CUSTOMERS.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
@@ -501,7 +501,7 @@ function Customers({t}){
             <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search customers" style={{border:"none",outline:"none",background:"transparent",fontSize:13,color:t.txt,width:"100%"}}/>
           </div>
         </div>
-        <div style={{maxHeight:520,overflowY:"auto"}}>
+        <div style={{maxHeight:mobile?240:520,overflowY:"auto"}}>
           {filtered.map(c=>(
             <div key={c.id} onClick={()=>setSel(c)} style={{padding:"12px 14px",cursor:"pointer",borderBottom:`1px solid ${t.border}`,background:sel?.id===c.id?t.accS:"transparent"}}>
               <div style={{fontWeight:600,fontSize:14,color:sel?.id===c.id?t.acc:t.txt}}>{c.name}</div>
@@ -564,7 +564,7 @@ function Customers({t}){
 }
 
 /* ── CALENDAR ──────────────────────────────────────────────────── */
-function CalendarView({t}){
+function CalendarView({t,mobile}){
   const [cur,setCur]=useState(new Date());
   const [selDay,setSelDay]=useState(new Date());
   const yr=cur.getFullYear(),mo=cur.getMonth();
@@ -624,7 +624,7 @@ function CalendarView({t}){
 }
 
 /* ── INVOICES ──────────────────────────────────────────────────── */
-function Invoices({t}){
+function Invoices({t,mobile}){
   const [filter,setFilter]=useState("All");
   const [sel,setSel]=useState(null);
   const invoices=[...BOOKINGS].filter(b=>!["Cancelled","No Show"].includes(b.status)).sort((a,b)=>b.date-a.date);
@@ -641,7 +641,7 @@ function Invoices({t}){
           <button key={f} onClick={()=>setFilter(f)} style={{fontSize:12,fontWeight:600,padding:"6px 13px",borderRadius:999,cursor:"pointer",border:`1px solid ${filter===f?t.acc:t.border}`,background:filter===f?t.accS:"transparent",color:filter===f?t.acc:t.txt2}}>{f}</button>
         ))}
       </div>
-      <Card t={t} style={{overflow:"hidden"}}>
+      <div style={{overflowX:"auto"}}><Card t={t} style={{overflow:"hidden",minWidth:mobile?560:0}}>
         <div style={{display:"grid",gridTemplateColumns:"0.9fr 1.4fr 0.9fr 0.8fr 0.8fr 0.9fr",padding:"11px 18px",borderBottom:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase"}}>
           <div>Invoice</div><div>Customer</div><div>Date</div><div>Total</div><div>Balance</div><div>Status</div>
         </div>
@@ -659,7 +659,7 @@ function Invoices({t}){
             </div>
           );
         })}
-      </Card>
+      </Card></div>
       {sel&&(
         <Drawer t={t} onClose={()=>setSel(null)} title={invNum(sel.id)}>
           <div style={{fontSize:12,color:t.txt2,marginBottom:16}}>Issued {sel.date.toLocaleDateString()}</div>
@@ -688,7 +688,7 @@ function Invoices({t}){
 }
 
 /* ── EXPENSES ──────────────────────────────────────────────────── */
-function Expenses({t}){
+function Expenses({t,mobile}){
   const total=EXPENSES.reduce((s,e)=>s+e.amount,0);
   const byCat=Object.values(EXPENSES.reduce((a,e)=>{a[e.cat]=a[e.cat]||{name:e.cat,value:0};a[e.cat].value+=e.amount;return a},{}));
   return (
@@ -721,7 +721,7 @@ function Expenses({t}){
 }
 
 /* ── INVENTORY ─────────────────────────────────────────────────── */
-function Inventory({t}){
+function Inventory({t,mobile}){
   const low=INVENTORY.filter(i=>i.stock<=i.min);
   return (
     <div>
@@ -739,7 +739,7 @@ function Inventory({t}){
           ))}
         </div>
       )}
-      <Card t={t} style={{overflow:"hidden"}}>
+      <div style={{overflowX:"auto"}}><Card t={t} style={{overflow:"hidden",minWidth:mobile?500:0}}>
         <div style={{display:"grid",gridTemplateColumns:"1.6fr 1fr 0.7fr 0.7fr 0.9fr",padding:"11px 18px",borderBottom:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase"}}>
           <div>Product</div><div>Supplier</div><div>Stock</div><div>Unit cost</div><div>Status</div>
         </div>
@@ -760,7 +760,7 @@ function Inventory({t}){
 /* ── EMPLOYEES ─────────────────────────────────────────────────── */
 function Employees({t}){
   return (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
       {EMPLOYEES.map(e=>(
         <Card t={t} key={e.id} style={{padding:20}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
@@ -788,11 +788,11 @@ function Employees({t}){
 }
 
 /* ── ANALYTICS ─────────────────────────────────────────────────── */
-function Analytics({t}){
+function Analytics({t,mobile}){
   const topCust=[...CUSTOMERS].map(c=>({name:c.name.split(" ")[0],value:BOOKINGS.filter(b=>b.cid===c.id&&b.status==="Completed").reduce((s,b)=>s+b.total,0)})).sort((a,b)=>b.value-a.value).slice(0,5);
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"1fr 1fr",gap:14}}>
         <ChCard t={t} title="Revenue vs profit trend" height={260}><LineChartCJ data={REVENUE_TREND} t={t}/></ChCard>
         <ChCard t={t} title="Top customers by spend" height={260}><BarChartCJ data={topCust} label="Revenue" color="#C9932E" t={t}/></ChCard>
       </div>
@@ -869,54 +869,127 @@ const NAV=[
 ];
 const VIEWS={dashboard:Dashboard,bookings:Bookings,customers:Customers,calendar:CalendarView,invoices:Invoices,expenses:Expenses,inventory:Inventory,employees:Employees,analytics:Analytics,notifications:Notifications,settings:Settings};
 
+function useIsMobile(){
+  const [mobile,setMobile]=useState(window.innerWidth<=768);
+  useEffect(()=>{
+    const fn=()=>setMobile(window.innerWidth<=768);
+    window.addEventListener("resize",fn);
+    return()=>window.removeEventListener("resize",fn);
+  },[]);
+  return mobile;
+}
+
 function App(){
   const [dark,setDark]=useState(false);
   const [view,setView]=useState("dashboard");
+  const [menuOpen,setMenuOpen]=useState(false);
   const t=dark?T.dark:T.light;
   const View=VIEWS[view];
+  const mobile=useIsMobile();
+
+  function navTo(id){
+    setView(id);
+    setMenuOpen(false);
+  }
+
   return (
     <div style={{display:"flex",minHeight:"100vh",background:t.bg}}>
-      {/* Sidebar */}
-      <div style={{width:210,background:t.side,padding:"18px 12px",display:"flex",flexDirection:"column",gap:3,flexShrink:0,position:"sticky",top:0,height:"100vh",overflowY:"auto"}}>
-        <div style={{display:"flex",alignItems:"center",gap:9,padding:"0 8px",marginBottom:22}}>
-          <div style={{width:26,height:26,borderRadius:7,background:t.acc,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n="sparkle" size={13} color="#fff"/></div>
-          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:13,fontWeight:700,color:"#fff",lineHeight:1.2}}>Bay Area Auto Care</span>
-        </div>
-        {NAV.map(n=>{
-          const active=view===n.id;
-          return (
-            <button key={n.id} onClick={()=>setView(n.id)} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 11px",borderRadius:8,border:"none",cursor:"pointer",background:active?"rgba(255,255,255,0.09)":"transparent",color:active?"#fff":t.sideTxt,fontSize:13.5,fontWeight:500,textAlign:"left"}}>
-              <Ic n={n.icon} size={15} color={active?"#fff":t.sideTxt}/>{n.label}
-            </button>
-          );
-        })}
-        <div style={{marginTop:"auto",padding:"10px 11px",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:9}}>
-          <div style={{width:28,height:28,borderRadius:"50%",background:t.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#241C0B"}}>OW</div>
-          <div>
-            <div style={{fontSize:12.5,fontWeight:600,color:"#fff"}}>Owner</div>
-            <div style={{fontSize:11,color:t.sideTxt}}>Full access</div>
+
+      {/* ── Desktop sidebar ── */}
+      {!mobile&&(
+        <div style={{width:210,background:t.side,padding:"18px 12px",display:"flex",flexDirection:"column",gap:3,flexShrink:0,position:"sticky",top:0,height:"100vh",overflowY:"auto"}}>
+          <div style={{display:"flex",alignItems:"center",gap:9,padding:"0 8px",marginBottom:22}}>
+            <div style={{width:26,height:26,borderRadius:7,background:t.acc,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n="sparkle" size={13} color={dark?"#000":"#fff"}/></div>
+            <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:13,fontWeight:700,color:"#fff",lineHeight:1.2}}>Bay Area Auto Care</span>
+          </div>
+          {NAV.map(n=>{
+            const active=view===n.id;
+            return(
+              <button key={n.id} onClick={()=>navTo(n.id)} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 11px",borderRadius:8,border:"none",cursor:"pointer",background:active?"rgba(255,255,255,0.09)":"transparent",color:active?"#fff":t.sideTxt,fontSize:13.5,fontWeight:500,textAlign:"left"}}>
+                <Ic n={n.icon} size={15} color={active?"#fff":t.sideTxt}/>{n.label}
+              </button>
+            );
+          })}
+          <div style={{marginTop:"auto",padding:"10px 11px",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:9}}>
+            <div style={{width:28,height:28,borderRadius:"50%",background:t.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#241C0B"}}>OW</div>
+            <div>
+              <div style={{fontSize:12.5,fontWeight:600,color:"#fff"}}>Owner</div>
+              <div style={{fontSize:11,color:t.sideTxt}}>Full access</div>
+            </div>
           </div>
         </div>
-      </div>
-      {/* Main */}
-      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 24px",borderBottom:`1px solid ${t.border}`,background:t.surf,position:"sticky",top:0,zIndex:10}}>
-          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,fontWeight:600,color:t.txt}}>{NAV.find(n=>n.id===view)?.label}</span>
-          <div style={{display:"flex",alignItems:"center",gap:9}}>
-            <div style={{display:"flex",alignItems:"center",gap:7,background:t.surf2,border:`1px solid ${t.border}`,borderRadius:9,padding:"7px 11px",width:200}}>
-              <Ic n="search" size={13} color={t.txtM}/>
-              <input placeholder="Search everything..." style={{border:"none",outline:"none",background:"transparent",fontSize:13,color:t.txt,width:"100%"}}/>
+      )}
+
+      {/* ── Mobile drawer overlay ── */}
+      {mobile&&menuOpen&&(
+        <div style={{position:"fixed",inset:0,zIndex:200,display:"flex"}}>
+          {/* Backdrop */}
+          <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)"}} onClick={()=>setMenuOpen(false)}/>
+          {/* Drawer */}
+          <div style={{position:"relative",width:240,background:t.side,height:"100%",overflowY:"auto",padding:"18px 12px",display:"flex",flexDirection:"column",gap:3,zIndex:1}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 8px",marginBottom:22}}>
+              <div style={{display:"flex",alignItems:"center",gap:9}}>
+                <div style={{width:26,height:26,borderRadius:7,background:t.acc,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n="sparkle" size={13} color={dark?"#000":"#fff"}/></div>
+                <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:13,fontWeight:700,color:"#fff"}}>Bay Area Auto Care</span>
+              </div>
+              <button onClick={()=>setMenuOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"#888",padding:4}}>
+                <Ic n="x" size={20} color="#888"/>
+              </button>
             </div>
-            <button onClick={()=>setDark(!dark)} style={{width:34,height:34,borderRadius:9,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {NAV.map(n=>{
+              const active=view===n.id;
+              return(
+                <button key={n.id} onClick={()=>navTo(n.id)} style={{display:"flex",alignItems:"center",gap:9,padding:"11px 11px",borderRadius:8,border:"none",cursor:"pointer",background:active?"rgba(255,255,255,0.09)":"transparent",color:active?"#fff":t.sideTxt,fontSize:15,fontWeight:500,textAlign:"left"}}>
+                  <Ic n={n.icon} size={16} color={active?"#fff":t.sideTxt}/>{n.label}
+                </button>
+              );
+            })}
+            <div style={{marginTop:"auto",padding:"10px 11px",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:9}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:t.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#241C0B"}}>OW</div>
+              <div>
+                <div style={{fontSize:12.5,fontWeight:600,color:"#fff"}}>Owner</div>
+                <div style={{fontSize:11,color:t.sideTxt}}>Full access</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Main content ── */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,width:"100%"}}>
+
+        {/* Top bar */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:mobile?"12px 16px":"14px 24px",borderBottom:`1px solid ${t.border}`,background:t.surf,position:"sticky",top:0,zIndex:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {mobile&&(
+              <button onClick={()=>setMenuOpen(true)} style={{width:34,height:34,borderRadius:9,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={t.txt2} strokeWidth={2} strokeLinecap="round">
+                  <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+              </button>
+            )}
+            <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:mobile?16:18,fontWeight:600,color:t.txt}}>{NAV.find(n=>n.id===view)?.label}</span>
+          </div>
+
+          <div style={{display:"flex",alignItems:"center",gap:mobile?7:9}}>
+            {!mobile&&(
+              <div style={{display:"flex",alignItems:"center",gap:7,background:t.surf2,border:`1px solid ${t.border}`,borderRadius:9,padding:"7px 11px",width:200}}>
+                <Ic n="search" size={13} color={t.txtM}/>
+                <input placeholder="Search everything..." style={{border:"none",outline:"none",background:"transparent",fontSize:13,color:t.txt,width:"100%"}}/>
+              </div>
+            )}
+            <button onClick={()=>setDark(!dark)} style={{width:34,height:34,borderRadius:9,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
               <Ic n={dark?"sun":"moon"} size={15} color={t.txt2}/>
             </button>
-            <button style={{display:"flex",alignItems:"center",gap:6,background:t.acc,color:"#fff",border:"none",borderRadius:9,padding:"8px 14px",fontSize:13,fontWeight:600,cursor:"pointer"}}>
-              <Ic n="plus" size={14} color="#fff"/> New booking
+            <button style={{display:"flex",alignItems:"center",gap:5,background:t.acc,color:dark?"#000":"#fff",border:"none",borderRadius:9,padding:mobile?"8px 11px":"8px 14px",fontSize:mobile?12:13,fontWeight:600,cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>
+              <Ic n="plus" size={13} color={dark?"#000":"#fff"}/>{mobile?"New":"New booking"}
             </button>
           </div>
         </div>
-        <div style={{padding:24,overflowY:"auto"}}>
-          <View t={t}/>
+
+        {/* Page content */}
+        <div style={{padding:mobile?14:24,overflowY:"auto",overflowX:"hidden"}}>
+          <View t={t} mobile={mobile}/>
         </div>
       </div>
     </div>
