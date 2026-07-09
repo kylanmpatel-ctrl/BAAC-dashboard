@@ -22,10 +22,13 @@ a{color:inherit;text-decoration:none;}
 </head>
 <body>
 <div id="root"></div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
+window.onload = function() {
 (function(){
 'use strict';
 var e=React.createElement;
@@ -83,32 +86,101 @@ function Ic(props){
   return e('svg',{width:props.size||16,height:props.size||16,viewBox:'0 0 24 24',fill:'none',stroke:props.color||'currentColor',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},e('path',{d:d}));
 }
 
-/* DB */
-var DB=(function(){
-  function ld(k){try{return JSON.parse(localStorage.getItem('baac_'+k)||'null');}catch(err){return null;}}
-  function sv(k,v){try{localStorage.setItem('baac_'+k,JSON.stringify(v));}catch(err){}}
-  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
-  return{
-    get:function(k){return ld(k)||[];},
-    set:function(k,a){sv(k,a);},
-    add:function(k,obj){var a=DB.get(k);obj.id=uid();obj.createdAt=new Date().toISOString();a.push(obj);DB.set(k,a);return obj;},
-    update:function(k,id,patch){var a=DB.get(k);var i=a.findIndex(function(x){return x.id===id;});if(i>=0){a[i]=Object.assign({},a[i],patch);DB.set(k,a);}},
-    remove:function(k,id){DB.set(k,DB.get(k).filter(function(x){return x.id!==id;}));},
-    find:function(k,id){return DB.get(k).find(function(x){return x.id===id;});}
-  };
-})();
+/* FIREBASE CONFIG */
+var firebaseConfig = {
+  apiKey: "AIzaSyA2Ha9RRVkd4NB6jbdw5WUif6uNqT_UMp0",
+  authDomain: "bay-area-auto-care.firebaseapp.com",
+  projectId: "bay-area-auto-care",
+  storageBucket: "bay-area-auto-care.firebasestorage.app",
+  messagingSenderId: "653913463796",
+  appId: "1:653913463796:web:737acd61ebb004dd9cf7a1"
+};
 
-(function seedSvcs(){
-  if(DB.get('services').length>0){return;}
-  var defs=[
-    {name:'Exterior Wash',price:45,mins:45},
-    {name:'Interior Detail',price:120,mins:90},
-    {name:'Full Detail',price:220,mins:180},
-    {name:'Ceramic Coating',price:650,mins:300},
-    {name:'Paint Correction',price:380,mins:240},
-    {name:'Engine Bay Cleaning',price:65,mins:40}
-  ];
-  defs.forEach(function(s){DB.add('services',s);});
+/* FIREBASE INIT */
+var fbApp = firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore(fbApp);
+
+/* DB - Firestore wrapper with localStorage cache for instant reads */
+var DB = (function(){
+  /* local cache so UI feels instant */
+  var cache = {};
+
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+
+  function col(k){ return db.collection(k); }
+
+  /* sync collection from Firestore into cache, returns promise */
+  function sync(k){
+    return col(k).orderBy('createdAt','asc').get().then(function(snap){
+      cache[k] = [];
+      snap.forEach(function(doc){
+        var d = doc.data();
+        d.id = doc.id;
+        cache[k].push(d);
+      });
+      return cache[k];
+    }).catch(function(e){
+      console.warn('Firestore sync error for '+k, e);
+      cache[k] = cache[k] || [];
+      return cache[k];
+    });
+  }
+
+  return {
+    /* synchronous read from cache */
+    get: function(k){ return cache[k] || []; },
+
+    /* load collection from Firestore, returns promise */
+    load: function(k){ return sync(k); },
+
+    /* add doc, returns promise */
+    add: function(k, obj){
+      obj.id = uid();
+      obj.createdAt = new Date().toISOString();
+      return col(k).doc(obj.id).set(obj).then(function(){
+        if(!cache[k]){ cache[k] = []; }
+        cache[k].push(obj);
+        return obj;
+      });
+    },
+
+    /* update doc fields, returns promise */
+    update: function(k, id, patch){
+      return col(k).doc(id).update(patch).then(function(){
+        var a = cache[k] || [];
+        var i = a.findIndex(function(x){ return x.id===id; });
+        if(i>=0){ a[i] = Object.assign({}, a[i], patch); }
+      });
+    },
+
+    /* delete doc, returns promise */
+    remove: function(k, id){
+      return col(k).doc(id).delete().then(function(){
+        if(cache[k]){ cache[k] = cache[k].filter(function(x){ return x.id!==id; }); }
+      });
+    },
+
+    /* find by id from cache */
+    find: function(k, id){
+      return (cache[k]||[]).find(function(x){ return x.id===id; });
+    },
+
+    /* seed default services if none exist */
+    seedServices: function(){
+      return sync('services').then(function(svcs){
+        if(svcs.length > 0){ return; }
+        var defs=[
+          {name:'Full Detail',price:199,mins:180},
+          {name:'Premium Wash & Wax',price:149,mins:90},
+          {name:'Full Interior Detail',price:149,mins:90},
+          {name:'Maintenance Detail',price:150,mins:60},
+          {name:'Ceramic Coating',price:499,mins:300}
+        ];
+        var promises = defs.map(function(s){ return DB.add('services',s); });
+        return Promise.all(promises);
+      });
+    }
+  };
 })();
 
 /* HELPERS */
@@ -328,9 +400,10 @@ function BookingModal(props){
       total:parseFloat(f.total)||0,
       pay:f.payStatus,
       method:f.payMethod
-    });
-    if(onSave){onSave();}
-    onClose();
+    }).then(function(){
+      if(onSave){onSave();}
+      onClose();
+    }).catch(function(e){setErr('Save failed: '+e.message);});
   }
 
   var selCust=f.custId?DB.find('customers',f.custId):null;
@@ -465,10 +538,8 @@ function CustomerModal(props){
   function upd(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
   function save(){
     if(!f.name.trim()){return;}
-    if(ex){DB.update('customers',ex.id,f);}
-    else{DB.add('customers',Object.assign({},f,{vehicles:[]}));}
-    if(onSave){onSave();}
-    onClose();
+    var p=ex?DB.update('customers',ex.id,f):DB.add('customers',Object.assign({},f,{vehicles:[]}));
+    p.then(function(){if(onSave){onSave();}onClose();}).catch(function(e){console.error(e);});
   }
   return e(Modal,{t:t,title:ex?'Edit Customer':'New Customer',onClose:onClose},
     e(Row2,{mobile:mobile},
@@ -502,10 +573,8 @@ function ExpenseModal(props){
   function upd(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
   function save(){
     if(!f.vendor||!f.amount){return;}
-    if(ex){DB.update('expenses',ex.id,f);}
-    else{DB.add('expenses',f);}
-    if(onSave){onSave();}
-    onClose();
+    var p=ex?DB.update('expenses',ex.id,f):DB.add('expenses',f);
+    p.then(function(){if(onSave){onSave();}onClose();}).catch(function(e){console.error(e);});
   }
   return e(Modal,{t:t,title:ex?'Edit Expense':'Add Expense',onClose:onClose},
     e(Row2,{mobile:mobile},
@@ -537,10 +606,8 @@ function EmployeeModal(props){
   function upd(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
   function save(){
     if(!f.name.trim()){return;}
-    if(ex){DB.update('employees',ex.id,f);}
-    else{DB.add('employees',f);}
-    if(onSave){onSave();}
-    onClose();
+    var p=ex?DB.update('employees',ex.id,f):DB.add('employees',f);
+    p.then(function(){if(onSave){onSave();}onClose();}).catch(function(e){console.error(e);});
   }
   return e(Modal,{t:t,title:ex?'Edit Employee':'New Employee',onClose:onClose},
     e(Row2,{mobile:mobile},
@@ -606,10 +673,11 @@ function InvoiceModal(props){
   }
   function save(){
     var inv=Object.assign({},f,{bookingId:bk.id||null});
-    DB.add('invoices',inv);
-    if(f.status==='Paid'&&bk.id){DB.update('bookings',bk.id,{pay:'Paid'});}
-    if(onSave){onSave();}
-    onClose();
+    DB.add('invoices',inv).then(function(){
+      if(f.status==='Paid'&&bk.id){DB.update('bookings',bk.id,{pay:'Paid'});}
+      if(onSave){onSave();}
+      onClose();
+    }).catch(function(e){console.error(e);});
   }
   return e(Modal,{t:t,title:'Create Invoice',onClose:onClose,wide:true},
     e(Row2,{mobile:mobile},
@@ -744,7 +812,7 @@ function Bookings(props){
   var invModal=invModalS[0];
   var setInvModal=invModalS[1];
 
-  useEffect(function(){setBk(DB.get('bookings'));},[ refresh]);
+  useEffect(function(){DB.load('bookings').then(function(){setBk(DB.get('bookings'));});},[ refresh]);
 
   var statuses=['All','New Lead','Quote Sent','Awaiting Deposit','Confirmed','Scheduled','On The Way','In Progress','Completed','Cancelled','No Show'];
   var rows=bk.filter(function(b){return filter==='All'||b.status===filter;}).sort(function(a,b){
@@ -755,15 +823,16 @@ function Bookings(props){
 
   function deleteBooking(id){
     if(!confirm('Delete this booking?')){return;}
-    DB.remove('bookings',id);
-    setBk(DB.get('bookings'));
-    setSel(null);
+    DB.remove('bookings',id).then(function(){
+      setBk(DB.get('bookings'));
+      setSel(null);
+    });
   }
   function updateStatus(id,status){
-    DB.update('bookings',id,{status:status});
-    setBk(DB.get('bookings'));
-    var updated=DB.find('bookings',id);
-    setSel(updated);
+    DB.update('bookings',id,{status:status}).then(function(){
+      setBk(DB.get('bookings'));
+      setSel(DB.find('bookings',id));
+    });
   }
 
   return e('div',null,
@@ -899,7 +968,7 @@ function Customers(props){
   var bkModal=bkModalS[0];
   var setBkModal=bkModalS[1];
 
-  useEffect(function(){setAll(DB.get('customers'));},[ refresh]);
+  useEffect(function(){DB.load('customers').then(function(){setAll(DB.get('customers'));});},[ refresh]);
 
   function reload(){
     setAll(DB.get('customers'));
@@ -913,9 +982,7 @@ function Customers(props){
 
   function deleteCust(id){
     if(!confirm('Delete this customer?')){return;}
-    DB.remove('customers',id);
-    reload();
-    setSel(null);
+    DB.remove('customers',id).then(function(){reload();setSel(null);});
   }
 
   function getCustStats(id){
@@ -1130,7 +1197,7 @@ function Invoices(props){
   var sel=selS[0];
   var setSel=selS[1];
 
-  useEffect(function(){setInvs(DB.get('invoices'));},[ refresh]);
+  useEffect(function(){DB.load('invoices').then(function(){setInvs(DB.get('invoices'));});},[ refresh]);
   function reload(){setInvs(DB.get('invoices'));}
 
   var shown=invs.filter(function(inv){return filter==='All'||inv.status===filter;}).sort(function(a,b){
@@ -1140,15 +1207,14 @@ function Invoices(props){
   var outstanding=invs.filter(function(inv){return inv.status!=='Paid';}).reduce(function(s,inv){return s+(parseFloat(inv.total)||0);},0);
 
   function markPaid(id){
-    DB.update('invoices',id,{status:'Paid',paidDate:new Date().toISOString().slice(0,10)});
-    reload();
-    setSel(DB.find('invoices',id));
+    DB.update('invoices',id,{status:'Paid',paidDate:new Date().toISOString().slice(0,10)}).then(function(){
+      reload();
+      setSel(DB.find('invoices',id));
+    });
   }
   function deleteInv(id){
     if(!confirm('Delete this invoice?')){return;}
-    DB.remove('invoices',id);
-    reload();
-    setSel(null);
+    DB.remove('invoices',id).then(function(){reload();setSel(null);});
   }
   function printInvoice(inv){
     var w=window.open('','_blank');
@@ -1265,7 +1331,7 @@ function Expenses(props){
   var editEx=editS[0];
   var setEditEx=editS[1];
 
-  useEffect(function(){setExps(DB.get('expenses'));},[ refresh]);
+  useEffect(function(){DB.load('expenses').then(function(){setExps(DB.get('expenses'));});},[ refresh]);
   function reload(){setExps(DB.get('expenses'));}
 
   var cats=['All','Chemicals','Equipment','Fuel','Marketing','Payroll','Insurance','Software','Office','Supplies','Miscellaneous'];
@@ -1281,8 +1347,7 @@ function Expenses(props){
 
   function deleteEx(id){
     if(!confirm('Delete this expense?')){return;}
-    DB.remove('expenses',id);
-    reload();
+    DB.remove('expenses',id).then(function(){reload();});
   }
 
   return e('div',null,
@@ -1356,12 +1421,11 @@ function Employees(props){
   var editEmp=editS[0];
   var setEditEmp=editS[1];
 
-  useEffect(function(){setEmps(DB.get('employees'));},[ refresh]);
+  useEffect(function(){DB.load('employees').then(function(){setEmps(DB.get('employees'));});},[ refresh]);
   function reload(){setEmps(DB.get('employees'));}
   function deleteEmp(id){
     if(!confirm('Delete this employee?')){return;}
-    DB.remove('employees',id);
-    reload();
+    DB.remove('employees',id).then(function(){reload();});
   }
   function getEmpStats(id){
     var emp=DB.find('employees',id);
@@ -1638,11 +1702,52 @@ function App(){
   var ms=useState(false);var menuOpen=ms[0];var setMenuOpen=ms[1];
   var rs=useState(0);var refresh=rs[0];var setRefresh=rs[1];
   var bms=useState(false);var bookingModal=bms[0];var setBookingModal=bms[1];
+  var loadingS=useState(true);var loading=loadingS[0];var setLoading=loadingS[1];
+  var loadErrS=useState('');var loadErr=loadErrS[0];var setLoadErr=loadErrS[1];
   var t=dark?T.dark:T.light;
   var mobile=useIsMobile();
   var View=VIEWS[view];
   function navTo(id){setView(id);setMenuOpen(false);}
-  function reload(){setRefresh(function(r){return r+1;});}
+  function reload(){
+    var cols=['bookings','customers','employees','expenses','invoices','services'];
+    Promise.all(cols.map(function(c){return DB.load(c);})).then(function(){
+      setRefresh(function(r){return r+1;});
+    });
+  }
+
+  /* Load all data from Firestore on mount */
+  useEffect(function(){
+    var cols=['bookings','customers','employees','expenses','invoices','services'];
+    Promise.all(cols.map(function(c){return DB.load(c);}))
+      .then(function(){
+        return DB.seedServices();
+      })
+      .then(function(){
+        return DB.load('services');
+      })
+      .then(function(){
+        setLoading(false);
+      })
+      .catch(function(e){
+        setLoadErr('Could not connect to database: '+e.message);
+        setLoading(false);
+      });
+  },[]);
+
+  if(loading){
+    return e('div',{style:{minHeight:'100vh',background:'#000',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}},
+      e('div',{style:{width:40,height:40,border:'3px solid #333',borderTop:'3px solid #fff',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}),
+      e('div',{style:{color:'#666',fontSize:14,fontFamily:'Inter,sans-serif'}},'Connecting to database...'),
+      e('style',null,'@keyframes spin{to{transform:rotate(360deg)}}')
+    );
+  }
+  if(loadErr){
+    return e('div',{style:{minHeight:'100vh',background:'#000',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:12,padding:24}},
+      e('div',{style:{color:'#FF4444',fontSize:16,fontWeight:700,fontFamily:'Inter,sans-serif'}},'Database Error'),
+      e('div',{style:{color:'#888',fontSize:13,fontFamily:'Inter,sans-serif',textAlign:'center',maxWidth:400}},loadErr),
+      e('button',{onClick:function(){window.location.reload();},style:{marginTop:8,padding:'10px 20px',background:'#fff',color:'#000',border:'none',borderRadius:9,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Retry')
+    );
+  }
 
   function SidebarLinks(){
     return e('div',{style:{display:'flex',flexDirection:'column',gap:3,height:'100%'}},
@@ -1743,6 +1848,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 })();
 
+};
 </script>
 </body>
 </html>
