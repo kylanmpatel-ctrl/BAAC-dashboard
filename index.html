@@ -14,12 +14,10 @@ body{font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;background:
 button{font-family:Inter,sans-serif;cursor:pointer;}
 input,select,textarea{font-family:Inter,sans-serif;}
 input::placeholder,textarea::placeholder{opacity:0.45;}
-select option{background:#1A1A1A;}
 a{color:inherit;text-decoration:none;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#444;border-radius:3px;}
-@media print{body{background:#fff;}}
 </style>
 </head>
 <body>
@@ -28,40 +26,71 @@ a{color:inherit;text-decoration:none;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-(function() {
+(function(){
 'use strict';
+var e=React.createElement;
+var useState=React.useState;
+var useEffect=React.useEffect;
+var useRef=React.useRef;
+var PASSWORD="BayAreaAutoCare2026$";
 
-var e = React.createElement;
-var useState = React.useState;
-var useEffect = React.useEffect;
-var useRef = React.useRef;
-
-var PASSWORD = "BayAreaAutoCare2026$";
-
-/* ── THEME ── */
-var T = {
+/* THEME */
+var T={
   light:{bg:"#F2F2F2",surf:"#FFFFFF",surf2:"#F7F7F7",border:"#E0E0E0",txt:"#0A0A0A",txt2:"#444444",txtM:"#888888",side:"#0A0A0A",sideTxt:"#888888",acc:"#0A0A0A",accS:"#EEEEEE",gold:"#333333",goldS:"#E8E8E8",ok:"#166534",okS:"#DCFCE7",err:"#991B1B",errS:"#FEE2E2"},
   dark:{bg:"#000000",surf:"#111111",surf2:"#1A1A1A",border:"#2A2A2A",txt:"#FFFFFF",txt2:"#AAAAAA",txtM:"#666666",side:"#000000",sideTxt:"#666666",acc:"#FFFFFF",accS:"#1F1F1F",gold:"#CCCCCC",goldS:"#1A1A1A",ok:"#4ADE80",okS:"#14532D",err:"#F87171",errS:"#450A0A"}
 };
 
-/* ── ICONS ── */
-var ICONS={dashboard:"M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",calendar:"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",users:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",settings:"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",search:"m21 21-6-6M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z",moon:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z",sun:"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z",plus:"M12 5v14M5 12h14",x:"M18 6 6 18M6 6l12 12",phone:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.06 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z",mail:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6",pin:"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0zM12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",car:"M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v5h-2M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",dollar:"M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",up:"M22 7 13.5 15.5 8.5 10.5 2 17M22 7h-5M22 7v5",down:"M22 17 13.5 8.5 8.5 13.5 2 7M22 17h-5M22 17v-5",clock:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 6v6l4 2",check:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM9 12l2 2 4-4",star:"M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",chevL:"M15 18l-6-6 6-6",chevR:"M9 18l6-6-6-6",sparkle:"M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z",wallet:"M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4z",receipt:"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8H8M16 12H8M12 16H8",file:"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",bell:"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0",bars:"M3 3v18h18M18 17V9M13 17V5M8 17v-3",warn:"M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01",send:"m22 2-7 20-4-9-9-4zM22 2 11 13",edit:"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z",trash:"M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",menu:"M3 6h18M3 12h18M3 18h18",download:"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",print:"M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"};
+/* ICONS */
+var ICONS={
+  dashboard:"M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
+  calendar:"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
+  users:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  settings:"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  search:"m21 21-6-6M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z",
+  moon:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z",
+  sun:"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z",
+  plus:"M12 5v14M5 12h14",
+  x:"M18 6 6 18M6 6l12 12",
+  phone:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.06 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z",
+  mail:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6",
+  pin:"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0zM12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  car:"M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v5h-2M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
+  dollar:"M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+  up:"M22 7 13.5 15.5 8.5 10.5 2 17M22 7h-5M22 7v5",
+  down:"M22 17 13.5 8.5 8.5 13.5 2 7M22 17h-5M22 17v-5",
+  clock:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 6v6l4 2",
+  check:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM9 12l2 2 4-4",
+  star:"M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  chevL:"M15 18l-6-6 6-6",
+  chevR:"M9 18l6-6-6-6",
+  sparkle:"M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z",
+  wallet:"M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4z",
+  receipt:"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8H8M16 12H8M12 16H8",
+  file:"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  bell:"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0",
+  bars:"M3 3v18h18M18 17V9M13 17V5M8 17v-3",
+  warn:"M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01",
+  send:"m22 2-7 20-4-9-9-4zM22 2 11 13",
+  edit:"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z",
+  trash:"M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+  menu:"M3 6h18M3 12h18M3 18h18",
+  print:"M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"
+};
 
 function Ic(props){
-  var n=props.n,size=props.size||16,color=props.color||'currentColor';
-  var d=ICONS[n]; if(!d) return null;
-  return e('svg',{width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:color,strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},e('path',{d:d}));
+  var d=ICONS[props.n];
+  if(!d) return null;
+  return e('svg',{width:props.size||16,height:props.size||16,viewBox:'0 0 24 24',fill:'none',stroke:props.color||'currentColor',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},e('path',{d:d}));
 }
 
-/* ── DB (localStorage) ── */
+/* DB */
 var DB=(function(){
-  function load(k){try{return JSON.parse(localStorage.getItem('baac_'+k)||'null');}catch(err){return null;}}
-  function save(k,v){try{localStorage.setItem('baac_'+k,JSON.stringify(v));}catch(err){}}
+  function ld(k){try{return JSON.parse(localStorage.getItem('baac_'+k)||'null');}catch(err){return null;}}
+  function sv(k,v){try{localStorage.setItem('baac_'+k,JSON.stringify(v));}catch(err){}}
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
   return{
-    load:load,save:save,uid:uid,
-    get:function(k){return load(k)||[];},
-    set:function(k,a){save(k,a);},
+    get:function(k){return ld(k)||[];},
+    set:function(k,a){sv(k,a);},
     add:function(k,obj){var a=DB.get(k);obj.id=uid();obj.createdAt=new Date().toISOString();a.push(obj);DB.set(k,a);return obj;},
     update:function(k,id,patch){var a=DB.get(k);var i=a.findIndex(function(x){return x.id===id;});if(i>=0){a[i]=Object.assign({},a[i],patch);DB.set(k,a);}},
     remove:function(k,id){DB.set(k,DB.get(k).filter(function(x){return x.id!==id;}));},
@@ -69,40 +98,109 @@ var DB=(function(){
   };
 })();
 
-/* seed default services once */
-(function(){
-  if(DB.get('services').length>0)return;
-  [{name:'Exterior Wash',price:45,mins:45},{name:'Interior Detail',price:120,mins:90},{name:'Full Detail',price:220,mins:180},{name:'Ceramic Coating',price:650,mins:300},{name:'Paint Correction',price:380,mins:240},{name:'Engine Bay Cleaning',price:65,mins:40}].forEach(function(s){DB.add('services',s);});
+(function seedSvcs(){
+  if(DB.get('services').length>0){return;}
+  var defs=[
+    {name:'Exterior Wash',price:45,mins:45},
+    {name:'Interior Detail',price:120,mins:90},
+    {name:'Full Detail',price:220,mins:180},
+    {name:'Ceramic Coating',price:650,mins:300},
+    {name:'Paint Correction',price:380,mins:240},
+    {name:'Engine Bay Cleaning',price:65,mins:40}
+  ];
+  defs.forEach(function(s){DB.add('services',s);});
 })();
 
-/* ── HELPERS ── */
+/* HELPERS */
 var $=function(n){return(n||0).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});};
 var $$=function(n){return(n||0).toLocaleString('en-US',{style:'currency',currency:'USD'});};
 function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
-function parseDate(v){if(!v)return null;if(v instanceof Date)return v;try{return new Date(v);}catch(e){return null;}}
+function parseDate(v){if(!v){return null;}if(v instanceof Date){return v;}try{return new Date(v);}catch(ex){return null;}}
 
-var STATUS_COLOR={'New Lead':'gray','Quote Sent':'gray','Awaiting Deposit':'gold','Confirmed':'acc','Scheduled':'acc','On The Way':'gold','In Progress':'gold','Completed':'ok','Cancelled':'err','No Show':'err'};
-function sc(t,k){var m={acc:{bg:t.accS,fg:t.acc},gold:{bg:t.goldS||'#FFF8E7',fg:t.gold},ok:{bg:t.okS,fg:t.ok},err:{bg:t.errS,fg:t.err},gray:{bg:t.surf2,fg:t.txt2}};return m[k]||m.gray;}
-
-/* ── UI ATOMS ── */
-function Card(props){return e('div',{style:Object.assign({background:props.t.surf,border:'1px solid '+props.t.border,borderRadius:14,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'},props.style||{})},props.children);}
-function Badge(props){var c=sc(props.t,props.k||'gray');return e('span',{style:{background:c.bg,color:c.fg,fontSize:11,fontWeight:700,padding:'3px 9px',borderRadius:999,whiteSpace:'nowrap',display:'inline-block'}},props.children);}
-function KpiCard(props){var t=props.t;return e(Card,{t:t,style:{padding:'16px 18px',display:'flex',flexDirection:'column',justifyContent:'space-between',minHeight:120}},e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},e('span',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase',letterSpacing:'0.5px'}},props.label),props.icon?e(Ic,{n:props.icon,size:15,color:t.txtM}):null),e('div',null,e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,fontWeight:600,color:t.txt,marginTop:8}},props.value),props.sub?e('div',{style:{fontSize:12,color:props.trend==='up'?t.ok:props.trend==='down'?t.err:t.txt2,marginTop:3}},props.sub):null));}
-
-function Btn(props){
-  var t=props.t,v=props.variant||'primary',disabled=props.disabled;
-  var styles={primary:{background:t.acc,color:t.bg==='#000000'?'#000':'#fff',border:'none'},secondary:{background:t.surf2,color:t.txt,border:'1px solid '+t.border},danger:{background:t.errS,color:t.err,border:'none'}};
-  var s=styles[v]||styles.primary;
-  return e('button',{onClick:props.onClick,disabled:disabled,style:Object.assign({display:'inline-flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,fontSize:13,fontWeight:600,cursor:disabled?'not-allowed':'pointer',opacity:disabled?0.5:1,fontFamily:'Inter,sans-serif',whiteSpace:'nowrap'},s,props.style||{})},props.children);
+var SC={'New Lead':'gray','Quote Sent':'gray','Awaiting Deposit':'gold','Confirmed':'acc','Scheduled':'acc','On The Way':'gold','In Progress':'gold','Completed':'ok','Cancelled':'err','No Show':'err'};
+function sc(t,k){
+  var m={acc:{bg:t.accS,fg:t.acc},gold:{bg:t.goldS,fg:t.gold},ok:{bg:t.okS,fg:t.ok},err:{bg:t.errS,fg:t.err},gray:{bg:t.surf2,fg:t.txt2}};
+  return m[k]||m.gray;
 }
 
-function Inp(props){var t=props.t;return e('input',Object.assign({style:{width:'100%',padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:13.5,color:t.txt,outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box'}},props));}
-function Sel(props){var t=props.t,opts=props.options||[];return e('select',{value:props.value,onChange:props.onChange,style:{width:'100%',padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:13.5,color:t.txt,outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box'}},e('option',{value:''},'— Select —'),opts.map(function(o){var val=typeof o==='string'?o:o.value,lbl=typeof o==='string'?o:o.label;return e('option',{key:val,value:val},lbl);}));}
-function Txa(props){var t=props.t;return e('textarea',Object.assign({style:{width:'100%',padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:13.5,color:t.txt,outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box',resize:'vertical',minHeight:70}},props));}
-function Fld(props){var t=props.t;return e('div',{style:{marginBottom:13}},e('label',{style:{display:'block',fontSize:11.5,fontWeight:600,color:t.txtM,marginBottom:5,textTransform:'uppercase',letterSpacing:'0.4px'}},props.label,props.req?e('span',{style:{color:t.err}},' *'):null),props.children);}
-function Row2(props){return e('div',{style:{display:'grid',gridTemplateColumns:props.mobile?'1fr':'1fr 1fr',gap:12}},props.children);}
-function Divider(props){return e('div',{style:{borderTop:'1px solid '+props.t.border,margin:'16px 0'}});}
-
+/* UI ATOMS */
+function Card(props){
+  return e('div',{style:Object.assign({background:props.t.surf,border:'1px solid '+props.t.border,borderRadius:14,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'},props.style||{})},props.children);
+}
+function Badge(props){
+  var c=sc(props.t,props.k||'gray');
+  return e('span',{style:{background:c.bg,color:c.fg,fontSize:11,fontWeight:700,padding:'3px 9px',borderRadius:999,whiteSpace:'nowrap',display:'inline-block'}},props.children);
+}
+function KpiCard(props){
+  var t=props.t;
+  return e(Card,{t:t,style:{padding:'16px 18px',display:'flex',flexDirection:'column',justifyContent:'space-between',minHeight:120}},
+    e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+      e('span',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase',letterSpacing:'0.5px'}},props.label),
+      props.icon?e(Ic,{n:props.icon,size:15,color:t.txtM}):null
+    ),
+    e('div',null,
+      e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,fontWeight:600,color:t.txt,marginTop:8}},props.value),
+      props.sub?e('div',{style:{fontSize:12,color:props.trend==='up'?t.ok:props.trend==='down'?t.err:t.txt2,marginTop:3}},props.sub):null
+    )
+  );
+}
+function Btn(props){
+  var t=props.t;
+  var v=props.variant||'primary';
+  var ss={
+    primary:{background:t.acc,color:t.bg==='#000000'?'#000':'#fff',border:'none'},
+    secondary:{background:t.surf2,color:t.txt,border:'1px solid '+t.border},
+    danger:{background:t.errS,color:t.err,border:'none'}
+  };
+  var base={display:'inline-flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap'};
+  return e('button',{onClick:props.onClick,disabled:props.disabled,style:Object.assign({},base,ss[v]||ss.primary,props.style||{})},props.children);
+}
+function Inp(props){
+  var t=props.t;
+  var style={width:'100%',padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:13.5,color:t.txt,outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box'};
+  return e('input',Object.assign({style:style},props,{t:undefined}));
+}
+function Sel(props){
+  var t=props.t;
+  var opts=props.options||[];
+  var style={width:'100%',padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:13.5,color:t.txt,outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box'};
+  return e('select',{value:props.value,onChange:props.onChange,style:style},
+    e('option',{value:''},'-- Select --'),
+    opts.map(function(o){
+      var val=typeof o==='string'?o:o.value;
+      var lbl=typeof o==='string'?o:o.label;
+      return e('option',{key:val,value:val},lbl);
+    })
+  );
+}
+function Txa(props){
+  var t=props.t;
+  var style={width:'100%',padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:13.5,color:t.txt,outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box',resize:'vertical',minHeight:70};
+  return e('textarea',Object.assign({style:style},props,{t:undefined}));
+}
+function Fld(props){
+  var t=props.t;
+  return e('div',{style:{marginBottom:13}},
+    e('label',{style:{display:'block',fontSize:11.5,fontWeight:600,color:t.txtM,marginBottom:5,textTransform:'uppercase',letterSpacing:'0.4px'}},
+      props.label,
+      props.req?e('span',{style:{color:t.err}},' *'):null
+    ),
+    props.children
+  );
+}
+function Row2(props){
+  return e('div',{style:{display:'grid',gridTemplateColumns:props.mobile?'1fr':'1fr 1fr',gap:12}},props.children);
+}
+function Divider(props){
+  return e('div',{style:{borderTop:'1px solid '+props.t.border,margin:'14px 0'}});
+}
+function Empty(props){
+  return e('div',{style:{textAlign:'center',padding:'50px 20px',color:props.t.txtM}},
+    e('div',{style:{fontSize:30,marginBottom:12}},'--'),
+    e('div',{style:{fontSize:15,fontWeight:600,color:props.t.txt2,marginBottom:4}},props.title||'No data yet'),
+    e('div',{style:{fontSize:13}},props.sub||'')
+  );
+}
 function Modal(props){
   return e('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',zIndex:300,display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'30px 12px'},onClick:props.onClose},
     e('div',{style:{background:props.t.surf,borderRadius:16,width:'100%',maxWidth:props.wide?720:500,boxShadow:'0 24px 60px rgba(0,0,0,0.5)',marginBottom:30},onClick:function(ev){ev.stopPropagation();}},
@@ -115,146 +213,23 @@ function Modal(props){
   );
 }
 
-/* ── BOOKING MODAL ── */
-function BookingModal(props){
-  var t=props.t,onClose=props.onClose,onSave=props.onSave,mobile=props.mobile;
-  var custs=DB.get('customers'),svcs=DB.get('services'),emps=DB.get('employees');
-  var init={custId:'',isNew:false,newName:'',newPhone:'',newEmail:'',vehYear:'',vehMake:'',vehModel:'',vehColor:'',serviceId:'',addOns:'',date:'',time:'09:00',dur:90,empId:'',status:'Confirmed',notes:'',price:0,tax:0,deposit:0,total:0,payStatus:'Unpaid',payMethod:''};
-  var fs=useState(init);var f=fs[0];var setF=fs[1];
-  var errS=useState('');var err=errS[0];var setErr=errS[1];
-  function upd(k,v){setF(function(p){return Object.assign({},p,{[k]:v});});}
-  function pickSvc(id){
-    var s=DB.find('services',id);
-    if(!s){upd('serviceId','');return;}
-    var p=parseFloat(s.price)||0,tx=Math.round(p*0.085*100)/100;
-    setF(function(prev){return Object.assign({},prev,{serviceId:id,price:p,tax:tx,total:+(p+tx).toFixed(2),dur:s.mins||90});});
-  }
-  function recalc(price,tax){var p=parseFloat(price)||0,tx=parseFloat(tax)||0;return+(p+tx).toFixed(2);}
-
-  function save(){
-    if(!f.custId&&!f.newName.trim()){setErr('Select or create a customer.');return;}
-    if(!f.serviceId){setErr('Select a service.');return;}
-    if(!f.date){setErr('Set an appointment date.');return;}
-    setErr('');
-    var custId=f.custId;
-    if(f.isNew&&f.newName.trim()){var nc=DB.add('customers',{name:f.newName.trim(),phone:f.newPhone,email:f.newEmail,address:'',notes:'',referral:'',vehicles:[]});custId=nc.id;}
-    if(f.vehMake&&custId){var c=DB.find('customers',custId);if(c){var vs=c.vehicles||[];vs.push({year:f.vehYear,make:f.vehMake,model:f.vehModel,color:f.vehColor});DB.update('customers',custId,{vehicles:vs});}}
-    var svc=DB.find('services',f.serviceId);
-    var emp=f.empId?DB.find('employees',f.empId):null;
-    var dt=new Date(f.date+'T'+(f.time||'09:00'));
-    DB.add('bookings',{custId:custId,vehicle:[f.vehYear,f.vehMake,f.vehModel,f.vehColor].filter(Boolean).join(' ')||'—',service:svc?svc.name:'—',addOns:f.addOns,date:dt.toISOString(),dur:f.dur,emp:emp?emp.name:'—',status:f.status,notes:f.notes,price:parseFloat(f.price)||0,tax:parseFloat(f.tax)||0,dep:parseFloat(f.deposit)||0,total:parseFloat(f.total)||0,pay:f.payStatus,method:f.payMethod});
-    onSave&&onSave();onClose();
-  }
-
-  var selCust=f.custId?DB.find('customers',f.custId):null;
-
-  return e(Modal,{t:t,title:'New Booking',onClose:onClose,wide:true},
-    err?e('div',{style:{background:t.errS,color:t.err,padding:'10px 14px',borderRadius:8,marginBottom:14,fontSize:13}},err):null,
-    /* Customer section */
-    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Customer'),
-    e('div',{style:{display:'flex',gap:8,marginBottom:12}},
-      e(Btn,{t:t,variant:f.isNew?'secondary':'primary',onClick:function(){upd('isNew',false);}},'Existing Customer'),
-      e(Btn,{t:t,variant:f.isNew?'primary':'secondary',onClick:function(){upd('isNew',true);}},'+ New Customer')
-    ),
-    f.isNew
-      ? e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Full Name',req:true},e(Inp,{t:t,value:f.newName,onChange:function(ev){upd('newName',ev.target.value);},placeholder:'Jane Smith'})),e(Fld,{t:t,label:'Phone'},e(Inp,{t:t,value:f.newPhone,onChange:function(ev){upd('newPhone',ev.target.value);},placeholder:'(415) 555-0100',type:'tel'})),e(Fld,{t:t,label:'Email'},e(Inp,{t:t,value:f.newEmail,onChange:function(ev){upd('newEmail',ev.target.value);},type:'email'})))
-      : e(Fld,{t:t,label:'Select Customer',req:true},e(Sel,{t:t,value:f.custId,onChange:function(ev){upd('custId',ev.target.value);},options:custs.map(function(c){return{value:c.id,label:c.name+(c.phone?' · '+c.phone:'')};});})),
-    /* Vehicle */
-    e(Divider,{t:t}),
-    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Vehicle'),
-    selCust&&selCust.vehicles&&selCust.vehicles.length>0?e('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:12}},e('span',{style:{fontSize:12,color:t.txt2,alignSelf:'center'}},'Quick pick:'),selCust.vehicles.map(function(v,i){var vs=[v.year,v.make,v.model,v.color].filter(Boolean).join(' ');return e('button',{key:i,onClick:function(){setF(function(p){return Object.assign({},p,{vehYear:v.year||'',vehMake:v.make||'',vehModel:v.model||'',vehColor:v.color||''});});},style:{padding:'4px 10px',borderRadius:7,border:'1px solid '+t.border,background:t.surf2,fontSize:12,color:t.txt,cursor:'pointer'}},vs);})):null,
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Year'},e(Inp,{t:t,value:f.vehYear,onChange:function(ev){upd('vehYear',ev.target.value);},placeholder:'2022',type:'number'})),e(Fld,{t:t,label:'Make'},e(Inp,{t:t,value:f.vehMake,onChange:function(ev){upd('vehMake',ev.target.value);},placeholder:'Toyota'})),e(Fld,{t:t,label:'Model'},e(Inp,{t:t,value:f.vehModel,onChange:function(ev){upd('vehModel',ev.target.value);},placeholder:'Camry'})),e(Fld,{t:t,label:'Color'},e(Inp,{t:t,value:f.vehColor,onChange:function(ev){upd('vehColor',ev.target.value);},placeholder:'White'}))),
-    /* Service */
-    e(Divider,{t:t}),
-    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Service'),
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Service',req:true},e(Sel,{t:t,value:f.serviceId,onChange:function(ev){pickSvc(ev.target.value);},options:svcs.map(function(s){return{value:s.id,label:s.name+' — $'+s.price};})})),e(Fld,{t:t,label:'Add-ons'},e(Inp,{t:t,value:f.addOns,onChange:function(ev){upd('addOns',ev.target.value);},placeholder:'Wheel sealant, odor removal...'}))),
-    /* Schedule */
-    e(Divider,{t:t}),
-    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Schedule'),
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Date',req:true},e(Inp,{t:t,type:'date',value:f.date,onChange:function(ev){upd('date',ev.target.value);}})),e(Fld,{t:t,label:'Time'},e(Inp,{t:t,type:'time',value:f.time,onChange:function(ev){upd('time',ev.target.value);}})),e(Fld,{t:t,label:'Duration (min)'},e(Inp,{t:t,type:'number',value:f.dur,onChange:function(ev){upd('dur',ev.target.value);}})),e(Fld,{t:t,label:'Assign Employee'},e(Sel,{t:t,value:f.empId,onChange:function(ev){upd('empId',ev.target.value);},options:emps.filter(function(em){return em.active!==false;}).map(function(em){return{value:em.id,label:em.name};})}))  ),
-    /* Payment */
-    e(Divider,{t:t}),
-    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Status & Payment'),
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Booking Status'},e(Sel,{t:t,value:f.status,onChange:function(ev){upd('status',ev.target.value);},options:['New Lead','Quote Sent','Awaiting Deposit','Confirmed','Scheduled','On The Way','In Progress','Completed','Cancelled','No Show']})),e(Fld,{t:t,label:'Payment Status'},e(Sel,{t:t,value:f.payStatus,onChange:function(ev){upd('payStatus',ev.target.value);},options:['Unpaid','Partial','Paid']})),e(Fld,{t:t,label:'Service Price ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.price,onChange:function(ev){var p=ev.target.value,tx=+(parseFloat(p)*0.085).toFixed(2);setF(function(prev){return Object.assign({},prev,{price:p,tax:tx,total:recalc(p,tx)});});}})),e(Fld,{t:t,label:'Tax (8.5%)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.tax,onChange:function(ev){var tx=ev.target.value;setF(function(prev){return Object.assign({},prev,{tax:tx,total:recalc(prev.price,tx)});});}})),e(Fld,{t:t,label:'Deposit ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.deposit,onChange:function(ev){upd('deposit',ev.target.value);}})),e(Fld,{t:t,label:'Total'},e('div',{style:{padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:15,fontWeight:700,color:t.txt,fontFamily:"'IBM Plex Mono',monospace"}},'$'+parseFloat(f.total||0).toFixed(2)))),
-    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);},placeholder:'Special instructions...'})),
-    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),e(Btn,{t:t,onClick:save},'Save Booking'))
-  );
-}
-
-/* ── CUSTOMER MODAL ── */
-function CustomerModal(props){
-  var t=props.t,onClose=props.onClose,onSave=props.onSave,ex=props.existing,mobile=props.mobile;
-  var fs=useState(ex||{name:'',phone:'',email:'',address:'',notes:'',referral:''});var f=fs[0];var setF=fs[1];
-  function upd(k,v){setF(function(p){return Object.assign({},p,{[k]:v});});}
-  function save(){if(!f.name.trim())return;if(ex){DB.update('customers',ex.id,f);}else{DB.add('customers',Object.assign({},f,{vehicles:[]}));}onSave&&onSave();onClose();}
-  return e(Modal,{t:t,title:ex?'Edit Customer':'New Customer',onClose:onClose},
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Full Name',req:true},e(Inp,{t:t,value:f.name,onChange:function(ev){upd('name',ev.target.value);},placeholder:'Jane Smith'})),e(Fld,{t:t,label:'Phone'},e(Inp,{t:t,value:f.phone,onChange:function(ev){upd('phone',ev.target.value);},type:'tel',placeholder:'(415) 555-0100'})),e(Fld,{t:t,label:'Email'},e(Inp,{t:t,value:f.email,onChange:function(ev){upd('email',ev.target.value);},type:'email'})),e(Fld,{t:t,label:'Referral Source'},e(Inp,{t:t,value:f.referral,onChange:function(ev){upd('referral',ev.target.value);},placeholder:'Instagram, Google, Referral...'}))),
-    e(Fld,{t:t,label:'Address'},e(Inp,{t:t,value:f.address,onChange:function(ev){upd('address',ev.target.value);},placeholder:'123 Main St, San Francisco, CA'})),
-    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
-    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),e(Btn,{t:t,onClick:save},ex?'Save Changes':'Add Customer'))
-  );
-}
-
-/* ── EXPENSE MODAL ── */
-function ExpenseModal(props){
-  var t=props.t,onClose=props.onClose,onSave=props.onSave,ex=props.existing,mobile=props.mobile;
-  var init=ex||{vendor:'',cat:'Chemicals',amount:'',date:new Date().toISOString().slice(0,10),method:'Card',notes:''};
-  var fs=useState(init);var f=fs[0];var setF=fs[1];
-  function upd(k,v){setF(function(p){return Object.assign({},p,{[k]:v});});}
-  function save(){if(!f.vendor||!f.amount)return;if(ex){DB.update('expenses',ex.id,f);}else{DB.add('expenses',f);}onSave&&onSave();onClose();}
-  var cats=['Chemicals','Equipment','Fuel','Marketing','Payroll','Insurance','Software','Office','Supplies','Miscellaneous'];
-  return e(Modal,{t:t,title:ex?'Edit Expense':'Add Expense',onClose:onClose},
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Vendor',req:true},e(Inp,{t:t,value:f.vendor,onChange:function(ev){upd('vendor',ev.target.value);},placeholder:'Chemical Guys'})),e(Fld,{t:t,label:'Amount ($)',req:true},e(Inp,{t:t,type:'number',step:'0.01',value:f.amount,onChange:function(ev){upd('amount',ev.target.value);}})),e(Fld,{t:t,label:'Category'},e(Sel,{t:t,value:f.cat,onChange:function(ev){upd('cat',ev.target.value);},options:cats})),e(Fld,{t:t,label:'Payment Method'},e(Sel,{t:t,value:f.method,onChange:function(ev){upd('method',ev.target.value);},options:['Card','Cash','Bank Transfer','Check','Zelle','Venmo']})),e(Fld,{t:t,label:'Date'},e(Inp,{t:t,type:'date',value:f.date,onChange:function(ev){upd('date',ev.target.value);}}))),
-    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
-    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),e(Btn,{t:t,onClick:save},ex?'Save Changes':'Add Expense'))
-  );
-}
-
-/* ── EMPLOYEE MODAL ── */
-function EmployeeModal(props){
-  var t=props.t,onClose=props.onClose,onSave=props.onSave,ex=props.existing,mobile=props.mobile;
-  var fs=useState(ex||{name:'',phone:'',email:'',position:'Detailer',hireDate:'',hourlyRate:'',commission:'',active:true,notes:''});var f=fs[0];var setF=fs[1];
-  function upd(k,v){setF(function(p){return Object.assign({},p,{[k]:v});});}
-  function save(){if(!f.name.trim())return;if(ex){DB.update('employees',ex.id,f);}else{DB.add('employees',f);}onSave&&onSave();onClose();}
-  return e(Modal,{t:t,title:ex?'Edit Employee':'New Employee',onClose:onClose},
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Full Name',req:true},e(Inp,{t:t,value:f.name,onChange:function(ev){upd('name',ev.target.value);},placeholder:'Marco Alvarez'})),e(Fld,{t:t,label:'Phone'},e(Inp,{t:t,value:f.phone,onChange:function(ev){upd('phone',ev.target.value);},type:'tel'})),e(Fld,{t:t,label:'Email'},e(Inp,{t:t,value:f.email,onChange:function(ev){upd('email',ev.target.value);},type:'email'})),e(Fld,{t:t,label:'Position'},e(Sel,{t:t,value:f.position,onChange:function(ev){upd('position',ev.target.value);},options:['Owner','Manager','Lead Detailer','Detailer','Assistant']})),e(Fld,{t:t,label:'Hire Date'},e(Inp,{t:t,type:'date',value:f.hireDate,onChange:function(ev){upd('hireDate',ev.target.value);}})),e(Fld,{t:t,label:'Hourly Rate ($)'},e(Inp,{t:t,type:'number',value:f.hourlyRate,onChange:function(ev){upd('hourlyRate',ev.target.value);},placeholder:'25.00'})),e(Fld,{t:t,label:'Commission %'},e(Inp,{t:t,type:'number',value:f.commission,onChange:function(ev){upd('commission',ev.target.value);},placeholder:'15'})),e(Fld,{t:t,label:'Status'},e('label',{style:{display:'flex',alignItems:'center',gap:8,cursor:'pointer',marginTop:6}},e('input',{type:'checkbox',checked:!!f.active,onChange:function(ev){upd('active',ev.target.checked);},style:{width:16,height:16}}),e('span',{style:{fontSize:13.5,color:t.txt}},'Active')))),
-    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
-    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),e(Btn,{t:t,onClick:save},ex?'Save Changes':'Add Employee'))
-  );
-}
-
-/* ── INVOICE MODAL ── */
-function InvoiceModal(props){
-  var t=props.t,onClose=props.onClose,onSave=props.onSave,booking=props.booking,mobile=props.mobile;
-  var b=booking||{};
-  var cName='';if(b.custId){var cc=DB.find('customers',b.custId);cName=cc?cc.name:'';}
-  var due=new Date();due.setDate(due.getDate()+14);
-  var fs=useState({num:'INV-'+Date.now().toString().slice(-6),custName:cName||'',vehicle:b.vehicle||'',service:b.service||'',addOns:b.addOns||'',price:b.price||0,tax:b.tax||0,discount:0,total:b.total||0,dueDate:due.toISOString().slice(0,10),status:'Unpaid',paidDate:'',method:'',notes:''});
-  var f=fs[0];var setF=fs[1];
-  function upd(k,v){setF(function(p){var nf=Object.assign({},p,{[k]:v});nf.total=+(parseFloat(nf.price||0)+parseFloat(nf.tax||0)-parseFloat(nf.discount||0)).toFixed(2);return nf;});}
-  function save(){
-    var inv=Object.assign({},f,{bookingId:b.id||null});
-    DB.add('invoices',inv);
-    if(f.status==='Paid'&&b.id){DB.update('bookings',b.id,{pay:'Paid'});}
-    onSave&&onSave();onClose();
-  }
-  return e(Modal,{t:t,title:'Create Invoice',onClose:onClose,wide:true},
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Invoice #'},e(Inp,{t:t,value:f.num,onChange:function(ev){upd('num',ev.target.value);}})),e(Fld,{t:t,label:'Due Date'},e(Inp,{t:t,type:'date',value:f.dueDate,onChange:function(ev){upd('dueDate',ev.target.value);}}))),
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Customer'},e(Inp,{t:t,value:f.custName,onChange:function(ev){upd('custName',ev.target.value);}})),e(Fld,{t:t,label:'Vehicle'},e(Inp,{t:t,value:f.vehicle,onChange:function(ev){upd('vehicle',ev.target.value);}}))),
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Service Price ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.price,onChange:function(ev){upd('price',ev.target.value);}})),e(Fld,{t:t,label:'Tax ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.tax,onChange:function(ev){upd('tax',ev.target.value);}})),e(Fld,{t:t,label:'Discount ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.discount,onChange:function(ev){upd('discount',ev.target.value);}})),e(Fld,{t:t,label:'Total'},e('div',{style:{padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:15,fontWeight:700,color:t.txt,fontFamily:"'IBM Plex Mono',monospace"}},'$'+parseFloat(f.total||0).toFixed(2)))),
-    e(Row2,{mobile:mobile},e(Fld,{t:t,label:'Status'},e(Sel,{t:t,value:f.status,onChange:function(ev){upd('status',ev.target.value);},options:['Unpaid','Partial','Paid']})),e(Fld,{t:t,label:'Payment Method'},e(Inp,{t:t,value:f.method,onChange:function(ev){upd('method',ev.target.value);},placeholder:'Card, Cash, Zelle...'}))),
-    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
-    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),e(Btn,{t:t,onClick:save},'Create Invoice'))
-  );
-}
-
-/* ── CHART WRAPPERS ── */
+/* CHARTS */
 function LineChart(props){
   var ref=useRef(null);
   useEffect(function(){
-    if(!ref.current||!window.Chart)return;
+    if(!ref.current||!window.Chart){return;}
     var ctx=ref.current.getContext('2d');
-    var ch=new Chart(ctx,{type:'line',data:{labels:props.data.map(function(d){return d.m;}),datasets:[{label:'Revenue',data:props.data.map(function(d){return d.rev;}),borderColor:props.t.acc,backgroundColor:'rgba(100,100,100,0.1)',borderWidth:2,tension:0.4,fill:true,pointRadius:3},{label:'Profit',data:props.data.map(function(d){return d.profit;}),borderColor:props.t.gold,borderWidth:2,tension:0.4,fill:false,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:props.t.txt2,font:{size:11}}}},scales:{x:{ticks:{color:props.t.txt2},grid:{color:props.t.border}},y:{ticks:{color:props.t.txt2,callback:function(v){return '$'+Math.round(v/1000)+'k';}},grid:{color:props.t.border}}}}});
+    var ch=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:props.data.map(function(d){return d.m;}),
+        datasets:[
+          {label:'Revenue',data:props.data.map(function(d){return d.rev;}),borderColor:props.t.acc,backgroundColor:'rgba(100,100,100,0.1)',borderWidth:2,tension:0.4,fill:true,pointRadius:3},
+          {label:'Profit',data:props.data.map(function(d){return d.profit;}),borderColor:props.t.gold,borderWidth:2,tension:0.4,fill:false,pointRadius:3}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:props.t.txt2,font:{size:11}}}},scales:{x:{ticks:{color:props.t.txt2},grid:{color:props.t.border}},y:{ticks:{color:props.t.txt2,callback:function(v){return '$'+Math.round(v/1000)+'k';}},grid:{color:props.t.border}}}}
+    });
     return function(){ch.destroy();};
   },[]);
   return e('canvas',{ref:ref,style:{width:'100%',height:'100%'}});
@@ -262,25 +237,415 @@ function LineChart(props){
 function DoughnutChart(props){
   var ref=useRef(null);
   useEffect(function(){
-    if(!ref.current||!window.Chart||!props.data.length)return;
+    if(!ref.current||!window.Chart||!props.data.length){return;}
     var ctx=ref.current.getContext('2d');
     var colors=['#222','#444','#666','#888','#aaa','#ccc','#333','#555'];
-    var ch=new Chart(ctx,{type:'doughnut',data:{labels:props.data.map(function(d){return d.name;}),datasets:[{data:props.data.map(function(d){return d.value;}),backgroundColor:colors,borderWidth:2,borderColor:props.t.surf}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:props.t.txt2,font:{size:11},boxWidth:12}}}}});
+    var ch=new Chart(ctx,{
+      type:'doughnut',
+      data:{labels:props.data.map(function(d){return d.name;}),datasets:[{data:props.data.map(function(d){return d.value;}),backgroundColor:colors,borderWidth:2,borderColor:props.t.surf}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:props.t.txt2,font:{size:11},boxWidth:12}}}}
+    });
     return function(){ch.destroy();};
   },[]);
   return e('canvas',{ref:ref,style:{width:'100%',height:'100%'}});
 }
 
-/* ── EMPTY STATE ── */
-function Empty(props){return e('div',{style:{textAlign:'center',padding:'50px 20px',color:props.t.txtM}},e('div',{style:{fontSize:32,marginBottom:12}},'📋'),e('div',{style:{fontSize:15,fontWeight:600,color:props.t.txt2,marginBottom:4}},props.title||'No data yet'),e('div',{style:{fontSize:13}},props.sub||''));}
+/* BOOKING MODAL */
+function BookingModal(props){
+  var t=props.t;
+  var onClose=props.onClose;
+  var onSave=props.onSave;
+  var mobile=props.mobile;
+  var custs=DB.get('customers');
+  var svcs=DB.get('services');
+  var emps=DB.get('employees');
+  var initF={custId:'',isNew:false,newName:'',newPhone:'',newEmail:'',vehYear:'',vehMake:'',vehModel:'',vehColor:'',serviceId:'',addOns:'',date:'',time:'09:00',dur:90,empId:'',status:'Confirmed',notes:'',price:0,tax:0,deposit:0,total:0,payStatus:'Unpaid',payMethod:''};
+  var fS=useState(initF);
+  var f=fS[0];
+  var setF=fS[1];
+  var errS=useState('');
+  var err=errS[0];
+  var setErr=errS[1];
 
-/* ═══════════════════════════════════
-   PAGES
-═══════════════════════════════════ */
+  function upd(k,v){
+    setF(function(p){
+      var n=Object.assign({},p);
+      n[k]=v;
+      return n;
+    });
+  }
+
+  function pickSvc(id){
+    var s=DB.find('services',id);
+    if(!s){upd('serviceId','');return;}
+    var p=parseFloat(s.price)||0;
+    var tx=Math.round(p*0.085*100)/100;
+    setF(function(prev){
+      var n=Object.assign({},prev);
+      n.serviceId=id;
+      n.price=p;
+      n.tax=tx;
+      n.total=+(p+tx).toFixed(2);
+      n.dur=s.mins||90;
+      return n;
+    });
+  }
+
+  function save(){
+    if(!f.custId&&!f.newName.trim()){setErr('Select or create a customer.');return;}
+    if(!f.serviceId){setErr('Select a service.');return;}
+    if(!f.date){setErr('Set an appointment date.');return;}
+    setErr('');
+    var custId=f.custId;
+    if(f.isNew&&f.newName.trim()){
+      var nc=DB.add('customers',{name:f.newName.trim(),phone:f.newPhone,email:f.newEmail,address:'',notes:'',referral:'',vehicles:[]});
+      custId=nc.id;
+    }
+    if(f.vehMake&&custId){
+      var c=DB.find('customers',custId);
+      if(c){
+        var vs=(c.vehicles||[]).slice();
+        vs.push({year:f.vehYear,make:f.vehMake,model:f.vehModel,color:f.vehColor});
+        DB.update('customers',custId,{vehicles:vs});
+      }
+    }
+    var svc=DB.find('services',f.serviceId);
+    var emp=f.empId?DB.find('employees',f.empId):null;
+    var dt=new Date(f.date+'T'+(f.time||'09:00'));
+    DB.add('bookings',{
+      custId:custId,
+      vehicle:[f.vehYear,f.vehMake,f.vehModel,f.vehColor].filter(Boolean).join(' ')||'--',
+      service:svc?svc.name:'--',
+      addOns:f.addOns,
+      date:dt.toISOString(),
+      dur:f.dur,
+      emp:emp?emp.name:'--',
+      status:f.status,
+      notes:f.notes,
+      price:parseFloat(f.price)||0,
+      tax:parseFloat(f.tax)||0,
+      dep:parseFloat(f.deposit)||0,
+      total:parseFloat(f.total)||0,
+      pay:f.payStatus,
+      method:f.payMethod
+    });
+    if(onSave){onSave();}
+    onClose();
+  }
+
+  var selCust=f.custId?DB.find('customers',f.custId):null;
+
+  var custOpts=custs.map(function(c){
+    return {value:c.id,label:c.name+(c.phone?' - '+c.phone:'')};
+  });
+  var svcOpts=svcs.map(function(s){
+    return {value:s.id,label:s.name+' -- $'+s.price};
+  });
+  var empOpts=emps.filter(function(em){return em.active!==false;}).map(function(em){
+    return {value:em.id,label:em.name};
+  });
+
+  var custFormEl=f.isNew
+    ? e(Row2,{mobile:mobile},
+        e(Fld,{t:t,label:'Full Name',req:true},e(Inp,{t:t,value:f.newName,onChange:function(ev){upd('newName',ev.target.value);},placeholder:'Jane Smith'})),
+        e(Fld,{t:t,label:'Phone'},e(Inp,{t:t,value:f.newPhone,onChange:function(ev){upd('newPhone',ev.target.value);},placeholder:'(415) 555-0100',type:'tel'})),
+        e(Fld,{t:t,label:'Email'},e(Inp,{t:t,value:f.newEmail,onChange:function(ev){upd('newEmail',ev.target.value);},type:'email'}))
+      )
+    : e(Fld,{t:t,label:'Select Customer',req:true},
+        e(Sel,{t:t,value:f.custId,onChange:function(ev){upd('custId',ev.target.value);},options:custOpts})
+      );
+
+  var vehQuickPick=null;
+  if(selCust&&selCust.vehicles&&selCust.vehicles.length>0){
+    vehQuickPick=e('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:12}},
+      e('span',{style:{fontSize:12,color:t.txt2,alignSelf:'center'}},'Quick pick:'),
+      selCust.vehicles.map(function(v,i){
+        var vs=[v.year,v.make,v.model,v.color].filter(Boolean).join(' ');
+        return e('button',{
+          key:i,
+          onClick:function(){
+            setF(function(p){
+              var n=Object.assign({},p);
+              n.vehYear=v.year||'';
+              n.vehMake=v.make||'';
+              n.vehModel=v.model||'';
+              n.vehColor=v.color||'';
+              return n;
+            });
+          },
+          style:{padding:'4px 10px',borderRadius:7,border:'1px solid '+t.border,background:t.surf2,fontSize:12,color:t.txt,cursor:'pointer',fontFamily:'Inter,sans-serif'}
+        },vs);
+      })
+    );
+  }
+
+  return e(Modal,{t:t,title:'New Booking',onClose:onClose,wide:true},
+    err?e('div',{style:{background:t.errS,color:t.err,padding:'10px 14px',borderRadius:8,marginBottom:14,fontSize:13}},err):null,
+
+    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Customer'),
+    e('div',{style:{display:'flex',gap:8,marginBottom:12}},
+      e(Btn,{t:t,variant:f.isNew?'secondary':'primary',onClick:function(){upd('isNew',false);}},'Existing Customer'),
+      e(Btn,{t:t,variant:f.isNew?'primary':'secondary',onClick:function(){upd('isNew',true);}},'+ New Customer')
+    ),
+    custFormEl,
+    e(Divider,{t:t}),
+    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Vehicle'),
+    vehQuickPick,
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Year'},e(Inp,{t:t,value:f.vehYear,onChange:function(ev){upd('vehYear',ev.target.value);},placeholder:'2022',type:'number'})),
+      e(Fld,{t:t,label:'Make'},e(Inp,{t:t,value:f.vehMake,onChange:function(ev){upd('vehMake',ev.target.value);},placeholder:'Toyota'})),
+      e(Fld,{t:t,label:'Model'},e(Inp,{t:t,value:f.vehModel,onChange:function(ev){upd('vehModel',ev.target.value);},placeholder:'Camry'})),
+      e(Fld,{t:t,label:'Color'},e(Inp,{t:t,value:f.vehColor,onChange:function(ev){upd('vehColor',ev.target.value);},placeholder:'White'}))
+    ),
+    e(Divider,{t:t}),
+    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Service'),
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Service',req:true},e(Sel,{t:t,value:f.serviceId,onChange:function(ev){pickSvc(ev.target.value);},options:svcOpts})),
+      e(Fld,{t:t,label:'Add-ons'},e(Inp,{t:t,value:f.addOns,onChange:function(ev){upd('addOns',ev.target.value);},placeholder:'Wheel sealant, odor removal...'}))
+    ),
+    e(Divider,{t:t}),
+    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Schedule'),
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Date',req:true},e(Inp,{t:t,type:'date',value:f.date,onChange:function(ev){upd('date',ev.target.value);}})),
+      e(Fld,{t:t,label:'Time'},e(Inp,{t:t,type:'time',value:f.time,onChange:function(ev){upd('time',ev.target.value);}})),
+      e(Fld,{t:t,label:'Duration (min)'},e(Inp,{t:t,type:'number',value:f.dur,onChange:function(ev){upd('dur',ev.target.value);}})),
+      e(Fld,{t:t,label:'Assign Employee'},e(Sel,{t:t,value:f.empId,onChange:function(ev){upd('empId',ev.target.value);},options:empOpts}))
+    ),
+    e(Divider,{t:t}),
+    e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Payment'),
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Booking Status'},e(Sel,{t:t,value:f.status,onChange:function(ev){upd('status',ev.target.value);},options:['New Lead','Quote Sent','Awaiting Deposit','Confirmed','Scheduled','On The Way','In Progress','Completed','Cancelled','No Show']})),
+      e(Fld,{t:t,label:'Payment Status'},e(Sel,{t:t,value:f.payStatus,onChange:function(ev){upd('payStatus',ev.target.value);},options:['Unpaid','Partial','Paid']})),
+      e(Fld,{t:t,label:'Service Price ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.price,onChange:function(ev){
+        var p=ev.target.value;
+        var tx=+(parseFloat(p)*0.085).toFixed(2);
+        setF(function(prev){
+          var n=Object.assign({},prev);
+          n.price=p;
+          n.tax=tx;
+          n.total=+(parseFloat(p)+tx).toFixed(2);
+          return n;
+        });
+      }})),
+      e(Fld,{t:t,label:'Tax (8.5%)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.tax,onChange:function(ev){
+        var tx=ev.target.value;
+        setF(function(prev){
+          var n=Object.assign({},prev);
+          n.tax=tx;
+          n.total=+(parseFloat(prev.price)+parseFloat(tx)).toFixed(2);
+          return n;
+        });
+      }})),
+      e(Fld,{t:t,label:'Deposit ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.deposit,onChange:function(ev){upd('deposit',ev.target.value);}})),
+      e(Fld,{t:t,label:'Total'},
+        e('div',{style:{padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:15,fontWeight:700,color:t.txt,fontFamily:"'IBM Plex Mono',monospace"}},
+          '$'+parseFloat(f.total||0).toFixed(2)
+        )
+      )
+    ),
+    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);},placeholder:'Special instructions...'})),
+    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},
+      e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),
+      e(Btn,{t:t,onClick:save},'Save Booking')
+    )
+  );
+}
+
+/* CUSTOMER MODAL */
+function CustomerModal(props){
+  var t=props.t;
+  var onClose=props.onClose;
+  var onSave=props.onSave;
+  var ex=props.existing;
+  var mobile=props.mobile;
+  var initF=ex?Object.assign({},ex):{name:'',phone:'',email:'',address:'',notes:'',referral:''};
+  var fS=useState(initF);
+  var f=fS[0];
+  var setF=fS[1];
+  function upd(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
+  function save(){
+    if(!f.name.trim()){return;}
+    if(ex){DB.update('customers',ex.id,f);}
+    else{DB.add('customers',Object.assign({},f,{vehicles:[]}));}
+    if(onSave){onSave();}
+    onClose();
+  }
+  return e(Modal,{t:t,title:ex?'Edit Customer':'New Customer',onClose:onClose},
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Full Name',req:true},e(Inp,{t:t,value:f.name,onChange:function(ev){upd('name',ev.target.value);},placeholder:'Jane Smith'})),
+      e(Fld,{t:t,label:'Phone'},e(Inp,{t:t,value:f.phone,onChange:function(ev){upd('phone',ev.target.value);},type:'tel',placeholder:'(415) 555-0100'})),
+      e(Fld,{t:t,label:'Email'},e(Inp,{t:t,value:f.email,onChange:function(ev){upd('email',ev.target.value);},type:'email'})),
+      e(Fld,{t:t,label:'Referral Source'},e(Inp,{t:t,value:f.referral,onChange:function(ev){upd('referral',ev.target.value);},placeholder:'Instagram, Google, Referral...'}))
+    ),
+    e(Fld,{t:t,label:'Address'},e(Inp,{t:t,value:f.address,onChange:function(ev){upd('address',ev.target.value);},placeholder:'123 Main St, San Francisco, CA'})),
+    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
+    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},
+      e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),
+      e(Btn,{t:t,onClick:save},ex?'Save Changes':'Add Customer')
+    )
+  );
+}
+
+/* EXPENSE MODAL */
+function ExpenseModal(props){
+  var t=props.t;
+  var onClose=props.onClose;
+  var onSave=props.onSave;
+  var ex=props.existing;
+  var mobile=props.mobile;
+  var cats=['Chemicals','Equipment','Fuel','Marketing','Payroll','Insurance','Software','Office','Supplies','Miscellaneous'];
+  var methods=['Card','Cash','Bank Transfer','Check','Zelle','Venmo'];
+  var initF=ex?Object.assign({},ex):{vendor:'',cat:'Chemicals',amount:'',date:new Date().toISOString().slice(0,10),method:'Card',notes:''};
+  var fS=useState(initF);
+  var f=fS[0];
+  var setF=fS[1];
+  function upd(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
+  function save(){
+    if(!f.vendor||!f.amount){return;}
+    if(ex){DB.update('expenses',ex.id,f);}
+    else{DB.add('expenses',f);}
+    if(onSave){onSave();}
+    onClose();
+  }
+  return e(Modal,{t:t,title:ex?'Edit Expense':'Add Expense',onClose:onClose},
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Vendor',req:true},e(Inp,{t:t,value:f.vendor,onChange:function(ev){upd('vendor',ev.target.value);},placeholder:'Chemical Guys'})),
+      e(Fld,{t:t,label:'Amount ($)',req:true},e(Inp,{t:t,type:'number',step:'0.01',value:f.amount,onChange:function(ev){upd('amount',ev.target.value);}})),
+      e(Fld,{t:t,label:'Category'},e(Sel,{t:t,value:f.cat,onChange:function(ev){upd('cat',ev.target.value);},options:cats})),
+      e(Fld,{t:t,label:'Payment Method'},e(Sel,{t:t,value:f.method,onChange:function(ev){upd('method',ev.target.value);},options:methods})),
+      e(Fld,{t:t,label:'Date'},e(Inp,{t:t,type:'date',value:f.date,onChange:function(ev){upd('date',ev.target.value);}}))
+    ),
+    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
+    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},
+      e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),
+      e(Btn,{t:t,onClick:save},ex?'Save Changes':'Add Expense')
+    )
+  );
+}
+
+/* EMPLOYEE MODAL */
+function EmployeeModal(props){
+  var t=props.t;
+  var onClose=props.onClose;
+  var onSave=props.onSave;
+  var ex=props.existing;
+  var mobile=props.mobile;
+  var initF=ex?Object.assign({},ex):{name:'',phone:'',email:'',position:'Detailer',hireDate:'',hourlyRate:'',commission:'',active:true,notes:''};
+  var fS=useState(initF);
+  var f=fS[0];
+  var setF=fS[1];
+  function upd(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
+  function save(){
+    if(!f.name.trim()){return;}
+    if(ex){DB.update('employees',ex.id,f);}
+    else{DB.add('employees',f);}
+    if(onSave){onSave();}
+    onClose();
+  }
+  return e(Modal,{t:t,title:ex?'Edit Employee':'New Employee',onClose:onClose},
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Full Name',req:true},e(Inp,{t:t,value:f.name,onChange:function(ev){upd('name',ev.target.value);},placeholder:'Marco Alvarez'})),
+      e(Fld,{t:t,label:'Phone'},e(Inp,{t:t,value:f.phone,onChange:function(ev){upd('phone',ev.target.value);},type:'tel'})),
+      e(Fld,{t:t,label:'Email'},e(Inp,{t:t,value:f.email,onChange:function(ev){upd('email',ev.target.value);},type:'email'})),
+      e(Fld,{t:t,label:'Position'},e(Sel,{t:t,value:f.position,onChange:function(ev){upd('position',ev.target.value);},options:['Owner','Manager','Lead Detailer','Detailer','Assistant']})),
+      e(Fld,{t:t,label:'Hire Date'},e(Inp,{t:t,type:'date',value:f.hireDate,onChange:function(ev){upd('hireDate',ev.target.value);}})),
+      e(Fld,{t:t,label:'Hourly Rate ($)'},e(Inp,{t:t,type:'number',value:f.hourlyRate,onChange:function(ev){upd('hourlyRate',ev.target.value);},placeholder:'25.00'})),
+      e(Fld,{t:t,label:'Commission %'},e(Inp,{t:t,type:'number',value:f.commission,onChange:function(ev){upd('commission',ev.target.value);},placeholder:'15'})),
+      e(Fld,{t:t,label:'Status'},
+        e('label',{style:{display:'flex',alignItems:'center',gap:8,cursor:'pointer',marginTop:6}},
+          e('input',{type:'checkbox',checked:!!f.active,onChange:function(ev){upd('active',ev.target.checked);},style:{width:16,height:16}}),
+          e('span',{style:{fontSize:13.5,color:t.txt}},'Active')
+        )
+      )
+    ),
+    e(Fld,{t:t,label:'Notes'},e(Txa,{t:t,value:f.notes,onChange:function(ev){upd('notes',ev.target.value);}})),
+    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},
+      e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),
+      e(Btn,{t:t,onClick:save},ex?'Save Changes':'Add Employee')
+    )
+  );
+}
+
+/* INVOICE MODAL */
+function InvoiceModal(props){
+  var t=props.t;
+  var onClose=props.onClose;
+  var onSave=props.onSave;
+  var bk=props.booking||{};
+  var mobile=props.mobile;
+  var cName='';
+  if(bk.custId){var cc=DB.find('customers',bk.custId);if(cc){cName=cc.name;}}
+  var due=new Date();
+  due.setDate(due.getDate()+14);
+  var initF={
+    num:'INV-'+Date.now().toString().slice(-6),
+    custName:cName||bk.custName||'',
+    vehicle:bk.vehicle||'',
+    service:bk.service||'',
+    addOns:bk.addOns||'',
+    price:bk.price||0,
+    tax:bk.tax||0,
+    discount:0,
+    total:bk.total||0,
+    dueDate:due.toISOString().slice(0,10),
+    status:'Unpaid',
+    paidDate:'',
+    method:'',
+    notes:''
+  };
+  var fS=useState(initF);
+  var f=fS[0];
+  var setF=fS[1];
+  function upd(k,v){
+    setF(function(p){
+      var n=Object.assign({},p);
+      n[k]=v;
+      n.total=+(parseFloat(n.price||0)+parseFloat(n.tax||0)-parseFloat(n.discount||0)).toFixed(2);
+      return n;
+    });
+  }
+  function save(){
+    var inv=Object.assign({},f,{bookingId:bk.id||null});
+    DB.add('invoices',inv);
+    if(f.status==='Paid'&&bk.id){DB.update('bookings',bk.id,{pay:'Paid'});}
+    if(onSave){onSave();}
+    onClose();
+  }
+  return e(Modal,{t:t,title:'Create Invoice',onClose:onClose,wide:true},
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Invoice #'},e(Inp,{t:t,value:f.num,onChange:function(ev){upd('num',ev.target.value);}})),
+      e(Fld,{t:t,label:'Due Date'},e(Inp,{t:t,type:'date',value:f.dueDate,onChange:function(ev){upd('dueDate',ev.target.value);}}))
+    ),
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Customer'},e(Inp,{t:t,value:f.custName,onChange:function(ev){upd('custName',ev.target.value);}})),
+      e(Fld,{t:t,label:'Vehicle'},e(Inp,{t:t,value:f.vehicle,onChange:function(ev){upd('vehicle',ev.target.value);}}))
+    ),
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Service Price ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.price,onChange:function(ev){upd('price',ev.target.value);}})),
+      e(Fld,{t:t,label:'Tax ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.tax,onChange:function(ev){upd('tax',ev.target.value);}})),
+      e(Fld,{t:t,label:'Discount ($)'},e(Inp,{t:t,type:'number',step:'0.01',value:f.discount,onChange:function(ev){upd('discount',ev.target.value);}})),
+      e(Fld,{t:t,label:'Total'},
+        e('div',{style:{padding:'9px 12px',background:t.surf2,border:'1px solid '+t.border,borderRadius:8,fontSize:15,fontWeight:700,color:t.txt,fontFamily:"'IBM Plex Mono',monospace"}},
+          '$'+parseFloat(f.total||0).toFixed(2)
+        )
+      )
+    ),
+    e(Row2,{mobile:mobile},
+      e(Fld,{t:t,label:'Status'},e(Sel,{t:t,value:f.status,onChange:function(ev){upd('status',ev.target.value);},options:['Unpaid','Partial','Paid']})),
+      e(Fld,{t:t,label:'Payment Method'},e(Inp,{t:t,value:f.method,onChange:function(ev){upd('method',ev.target.value);},placeholder:'Card, Cash, Zelle...'}))
+    ),
+    e('div',{style:{display:'flex',justifyContent:'flex-end',gap:10,marginTop:6}},
+      e(Btn,{t:t,variant:'secondary',onClick:onClose},'Cancel'),
+      e(Btn,{t:t,onClick:save},'Create Invoice')
+    )
+  );
+}
 
 /* DASHBOARD */
 function Dashboard(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh;
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
   var bookings=DB.get('bookings');
   var expenses=DB.get('expenses');
   var customers=DB.get('customers');
@@ -293,198 +658,403 @@ function Dashboard(props){
   var outstanding=bookings.filter(function(b){return b.pay!=='Paid';}).reduce(function(s,b){return s+(parseFloat(b.total)||0)-(parseFloat(b.dep)||0);},0);
   var completedBks=bookings.filter(function(b){return b.status==='Completed';});
   var netProfit=monthRev-monthExp;
-
-  /* build monthly trend from real data */
   var trendMap={};
-  bookings.forEach(function(b){var d=parseDate(b.date);if(!d)return;var key=d.getFullYear()+'-'+(d.getMonth()+1);if(!trendMap[key]){trendMap[key]={m:d.toLocaleDateString('en-US',{month:'short'}),rev:0,profit:0,key:d.getTime()};}trendMap[key].rev+=parseFloat(b.total)||0;});
-  expenses.forEach(function(ex){var d=ex.date?new Date(ex.date):null;if(!d)return;var key=d.getFullYear()+'-'+(d.getMonth()+1);if(trendMap[key]){trendMap[key].profit+=-(parseFloat(ex.amount)||0);}});
+  bookings.forEach(function(b){
+    var d=parseDate(b.date);
+    if(!d){return;}
+    var key=d.getFullYear()+'-'+(d.getMonth()+1);
+    if(!trendMap[key]){trendMap[key]={m:d.toLocaleDateString('en-US',{month:'short'}),rev:0,profit:0,key:d.getTime()};}
+    trendMap[key].rev+=parseFloat(b.total)||0;
+  });
+  expenses.forEach(function(ex){
+    var d=ex.date?new Date(ex.date):null;
+    if(!d){return;}
+    var key=d.getFullYear()+'-'+(d.getMonth()+1);
+    if(trendMap[key]){trendMap[key].profit-=(parseFloat(ex.amount)||0);}
+  });
   var trend=Object.values(trendMap).sort(function(a,b){return a.key-b.key;}).slice(-6);
   trend.forEach(function(m){m.profit=m.rev+m.profit;});
-
   var expByCat={};
   expenses.forEach(function(ex){var c=ex.cat||'Other';expByCat[c]=(expByCat[c]||0)+(parseFloat(ex.amount)||0);});
-  var expData=Object.keys(expByCat).map(function(k){return{name:k,value:expByCat[k]};});
-
+  var expData=Object.keys(expByCat).map(function(k){return {name:k,value:expByCat[k]};});
+  var insightLines=[];
+  if(completedBks.length>0){insightLines.push('You have completed '+completedBks.length+' job'+(completedBks.length!==1?'s':'')+' generating '+$$(monthRev)+' in revenue this month.');}
+  if(netProfit>0){insightLines.push('Net profit this month is '+$$(netProfit)+' after '+$$(monthExp)+' in expenses.');}
+  if(outstanding>0){insightLines.push(bookings.filter(function(b){return b.pay!=='Paid';}).length+' unpaid invoice(s) totaling '+$$(outstanding)+' outstanding.');}
+  if(insightLines.length===0){insightLines.push('Add your first booking to start receiving AI-powered insights about your business.');}
   return e('div',{style:{display:'flex',flexDirection:'column',gap:16}},
     e('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:14}},
-      e('div',{style:{background:'linear-gradient(135deg,#0A0A0A 0%,#1A1A1A 100%)',borderRadius:14,padding:'18px 20px',color:'#fff',minHeight:120}},e('div',{style:{fontSize:11,fontWeight:600,color:'#888',textTransform:'uppercase',letterSpacing:'0.5px'}},"Today's Revenue"),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:26,fontWeight:600,marginTop:8}},$$( todayRev)),e('div',{style:{fontSize:12,color:'#555',marginTop:4}},todayBks.length+' job'+(todayBks.length!==1?'s':'')+' today')),
+      e('div',{style:{background:'linear-gradient(135deg,#0A0A0A 0%,#1A1A1A 100%)',borderRadius:14,padding:'18px 20px',color:'#fff',minHeight:120}},
+        e('div',{style:{fontSize:11,fontWeight:600,color:'#888',textTransform:'uppercase',letterSpacing:'0.5px'}},"Today's Revenue"),
+        e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:26,fontWeight:600,marginTop:8}},$$( todayRev)),
+        e('div',{style:{fontSize:12,color:'#555',marginTop:4}},todayBks.length+' job'+(todayBks.length!==1?'s':'')+' today')
+      ),
       e(KpiCard,{t:t,label:'Monthly Revenue',value:$$(monthRev),icon:'dollar',sub:monthBks.length+' bookings'}),
       e(KpiCard,{t:t,label:'Net Profit (MTD)',value:$$(netProfit),icon:'up',trend:netProfit>=0?'up':'down'}),
       e(KpiCard,{t:t,label:'Outstanding',value:$$(outstanding),icon:'receipt',trend:'down',sub:bookings.filter(function(b){return b.pay!=='Paid';}).length+' unpaid'}),
       e(KpiCard,{t:t,label:'Jobs Today',value:todayBks.length,icon:'calendar',sub:todayBks.filter(function(b){return b.status==='Completed';}).length+' completed'}),
       e(KpiCard,{t:t,label:'Total Expenses',value:$$(monthExp),icon:'wallet',sub:'this month'}),
       e(KpiCard,{t:t,label:'Customers',value:customers.length,icon:'users'}),
-      e(KpiCard,{t:t,label:'Jobs Completed',value:completedBks.length,icon:'check'})
+      e(KpiCard,{t:t,label:'Completed Jobs',value:completedBks.length,icon:'check'})
     ),
-    trend.length>0?e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'1.6fr 1fr',gap:14}},e(Card,{t:t},e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Revenue & Profit Trend'),e('div',{style:{height:240,padding:'8px 12px 14px'}},e(LineChart,{data:trend,t:t}))),e(Card,{t:t},e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Expense Breakdown'),e('div',{style:{height:240,padding:'8px 12px 14px'}},expData.length?e(DoughnutChart,{data:expData,t:t}):e(Empty,{t:t,title:'No expenses',sub:'Add expenses to see breakdown'})))):e(Card,{t:t,style:{padding:40,textAlign:'center'}},e(Empty,{t:t,title:'No data yet',sub:'Add your first booking to see the dashboard come to life'})),
-    e(Card,{t:t,style:{padding:18}},e('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},e(Ic,{n:'sparkle',size:16,color:t.gold}),e('span',{style:{fontWeight:600,fontSize:14,color:t.txt}},'AI Business Insights')),bookings.length===0?e('div',{style:{fontSize:13,color:t.txt2,padding:'10px 12px',background:t.surf2,borderRadius:9}},'Add your first booking to start receiving AI-powered insights about your business.'):e('div',{style:{display:'flex',flexDirection:'column',gap:8}},
-      e('div',{style:{fontSize:13,color:t.txt2,padding:'10px 12px',background:t.surf2,borderRadius:9}},'This month you have completed '+completedBks.length+' job'+(completedBks.length!==1?'s':'')+' generating '+$$(monthRev)+' in revenue.'),
-      netProfit>0?e('div',{style:{fontSize:13,color:t.txt2,padding:'10px 12px',background:t.surf2,borderRadius:9}},'Net profit this month is '+$$(netProfit)+' after '+$$(monthExp)+' in expenses.'):null,
-      outstanding>0?e('div',{style:{fontSize:13,color:t.txt2,padding:'10px 12px',background:t.surf2,borderRadius:9}},bookings.filter(function(b){return b.pay!=='Paid';}).length+' unpaid invoice'+(bookings.filter(function(b){return b.pay!=='Paid';}).length!==1?'s':'')+' totaling '+$$(outstanding)+' outstanding.'):null
-    ))
+    trend.length>0
+      ? e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'1.6fr 1fr',gap:14}},
+          e(Card,{t:t},
+            e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Revenue & Profit Trend'),
+            e('div',{style:{height:240,padding:'8px 12px 14px'}},e(LineChart,{data:trend,t:t}))
+          ),
+          e(Card,{t:t},
+            e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Expense Breakdown'),
+            e('div',{style:{height:240,padding:'8px 12px 14px'}},
+              expData.length?e(DoughnutChart,{data:expData,t:t}):e(Empty,{t:t,title:'No expenses',sub:'Add expenses to see breakdown'})
+            )
+          )
+        )
+      : e(Card,{t:t,style:{padding:40,textAlign:'center'}},e(Empty,{t:t,title:'No data yet',sub:'Add your first booking to see the dashboard come to life'})),
+    e(Card,{t:t,style:{padding:18}},
+      e('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},
+        e(Ic,{n:'sparkle',size:16,color:t.gold}),
+        e('span',{style:{fontWeight:600,fontSize:14,color:t.txt}},'AI Business Insights')
+      ),
+      e('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+        insightLines.map(function(line,i){
+          return e('div',{key:i,style:{fontSize:13,color:t.txt2,padding:'10px 12px',background:t.surf2,borderRadius:9}},line);
+        })
+      )
+    )
   );
 }
 
 /* BOOKINGS PAGE */
 function Bookings(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh,onNewBooking=props.onNewBooking;
-  var bkS=useState(DB.get('bookings'));var bk=bkS[0];var setBk=bkS[1];
-  var filterS=useState('All');var filter=filterS[0];var setFilter=filterS[1];
-  var selS=useState(null);var sel=selS[0];var setSel=selS[1];
-  var invModalS=useState(false);var invModal=invModalS[0];var setInvModal=invModalS[1];
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
+  var onNewBooking=props.onNewBooking;
+  var bkS=useState(DB.get('bookings'));
+  var bk=bkS[0];
+  var setBk=bkS[1];
+  var filterS=useState('All');
+  var filter=filterS[0];
+  var setFilter=filterS[1];
+  var selS=useState(null);
+  var sel=selS[0];
+  var setSel=selS[1];
+  var invModalS=useState(false);
+  var invModal=invModalS[0];
+  var setInvModal=invModalS[1];
 
   useEffect(function(){setBk(DB.get('bookings'));},[ refresh]);
 
   var statuses=['All','New Lead','Quote Sent','Awaiting Deposit','Confirmed','Scheduled','On The Way','In Progress','Completed','Cancelled','No Show'];
-  var rows=bk.filter(function(b){return filter==='All'||b.status===filter;}).sort(function(a,b){var da=parseDate(a.date),db=parseDate(b.date);return (db||0)-(da||0);});
+  var rows=bk.filter(function(b){return filter==='All'||b.status===filter;}).sort(function(a,b){
+    var da=parseDate(a.date);
+    var db2=parseDate(b.date);
+    return (db2||0)-(da||0);
+  });
 
-  function deleteBooking(id){if(confirm('Delete this booking?')){DB.remove('bookings',id);setBk(DB.get('bookings'));setSel(null);}}
-  function updateStatus(id,status){DB.update('bookings',id,{status:status});setBk(DB.get('bookings'));var updated=DB.find('bookings',id);setSel(updated);}
+  function deleteBooking(id){
+    if(!confirm('Delete this booking?')){return;}
+    DB.remove('bookings',id);
+    setBk(DB.get('bookings'));
+    setSel(null);
+  }
+  function updateStatus(id,status){
+    DB.update('bookings',id,{status:status});
+    setBk(DB.get('bookings'));
+    var updated=DB.find('bookings',id);
+    setSel(updated);
+  }
 
   return e('div',null,
-    e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}},
+    e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}},
       e('div',{style:{display:'flex',gap:7,overflowX:'auto',flex:1}},
-        statuses.map(function(s){return e('button',{key:s,onClick:function(){setFilter(s);},style:{fontSize:12,fontWeight:600,padding:'6px 12px',borderRadius:999,cursor:'pointer',border:'1px solid '+(filter===s?t.acc:t.border),background:filter===s?t.accS:'transparent',color:filter===s?t.acc:t.txt2,whiteSpace:'nowrap',flexShrink:0}},s);})
+        statuses.map(function(s){
+          return e('button',{
+            key:s,
+            onClick:function(){setFilter(s);},
+            style:{fontSize:12,fontWeight:600,padding:'6px 12px',borderRadius:999,cursor:'pointer',border:'1px solid '+(filter===s?t.acc:t.border),background:filter===s?t.accS:'transparent',color:filter===s?t.acc:t.txt2,whiteSpace:'nowrap',flexShrink:0,fontFamily:'Inter,sans-serif'}
+          },s);
+        })
       ),
-      e(Btn,{t:t,onClick:onNewBooking,style:{marginLeft:10,flexShrink:0}},e(Ic,{n:'plus',size:14,color:t.bg==='#000000'?'#000':'#fff'}),'New Booking')
+      e(Btn,{t:t,onClick:onNewBooking,style:{flexShrink:0}},e(Ic,{n:'plus',size:14,color:t.bg==='#000000'?'#000':'#fff'}),'New Booking')
     ),
-    rows.length===0?e(Empty,{t:t,title:'No bookings',sub:'Click "New Booking" to add your first appointment'}):
-    e('div',{style:{overflowX:'auto'}},e(Card,{t:t,style:{overflow:'hidden',minWidth:560}},
-      e('div',{style:{display:'grid',gridTemplateColumns:'1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr',padding:'11px 18px',borderBottom:'1px solid '+t.border,fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase'}},
-        e('div',null,'Customer / Service'),e('div',null,'Vehicle'),e('div',null,'Date'),e('div',null,'Employee'),e('div',null,'Total'),e('div',null,'Status')),
-      rows.map(function(b){
-        var c=DB.find('customers',b.custId);
-        var d=parseDate(b.date);
-        return e('div',{key:b.id,onClick:function(){setSel(b);},style:{display:'grid',gridTemplateColumns:'1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr',padding:'13px 18px',borderBottom:'1px solid '+t.border,cursor:'pointer',fontSize:13.5,color:t.txt,alignItems:'center'}},
-          e('div',null,e('div',{style:{fontWeight:600}},c?c.name:'—'),e('div',{style:{fontSize:12,color:t.txt2}},b.service)),
-          e('div',{style:{color:t.txt2,fontSize:12}},b.vehicle||'—'),
-          e('div',{style:{color:t.txt2,fontSize:12}},d?d.toLocaleDateString(undefined,{month:'short',day:'numeric'}):'—'),
-          e('div',{style:{color:t.txt2,fontSize:12}},b.emp||'—'),
-          e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,fontSize:13}},$$( parseFloat(b.total)||0)),
-          e(Badge,{t:t,k:STATUS_COLOR[b.status]||'gray'},b.status)
-        );
-      })
-    )),
-    sel?e('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:100,display:'flex',justifyContent:'flex-end'},onClick:function(){setSel(null);}},
-      e('div',{style:{width:400,maxWidth:'92vw',background:t.surf,height:'100%',overflowY:'auto',padding:22},onClick:function(ev){ev.stopPropagation();}},
-        e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},e('span',{style:{fontWeight:700,fontSize:16,color:t.txt}},sel.service||'Booking'),e('button',{onClick:function(){setSel(null);},style:{background:'none',border:'none',cursor:'pointer'}},e(Ic,{n:'x',size:20,color:t.txtM}))),
-        e(Badge,{t:t,k:STATUS_COLOR[sel.status]||'gray'},sel.status),
-        e('div',{style:{marginTop:16}},
-          e('div',{style:{fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase',marginBottom:8}},'Details'),
-          [['Customer',(DB.find('customers',sel.custId)||{}).name||'—'],['Vehicle',sel.vehicle||'—'],['Date',parseDate(sel.date)?parseDate(sel.date).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}):'—'],['Time',parseDate(sel.date)?parseDate(sel.date).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'—'],['Employee',sel.emp||'—'],['Add-ons',sel.addOns||'—'],['Notes',sel.notes||'—']].map(function(pair){return e('div',{key:pair[0],style:{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid '+t.border,fontSize:13}},e('span',{style:{color:t.txt2}},pair[0]),e('span',{style:{color:t.txt,fontWeight:500,textAlign:'right',maxWidth:'60%'}},pair[1]));})
+    rows.length===0
+      ? e(Empty,{t:t,title:'No bookings',sub:'Click "New Booking" to add your first appointment'})
+      : e('div',{style:{overflowX:'auto'}},
+          e(Card,{t:t,style:{overflow:'hidden',minWidth:560}},
+            e('div',{style:{display:'grid',gridTemplateColumns:'1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr',padding:'11px 18px',borderBottom:'1px solid '+t.border,fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase'}},
+              e('div',null,'Customer / Service'),
+              e('div',null,'Vehicle'),
+              e('div',null,'Date'),
+              e('div',null,'Employee'),
+              e('div',null,'Total'),
+              e('div',null,'Status')
+            ),
+            rows.map(function(b){
+              var c=DB.find('customers',b.custId);
+              var d=parseDate(b.date);
+              return e('div',{
+                key:b.id,
+                onClick:function(){setSel(b);},
+                style:{display:'grid',gridTemplateColumns:'1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr',padding:'13px 18px',borderBottom:'1px solid '+t.border,cursor:'pointer',fontSize:13.5,color:t.txt,alignItems:'center'}
+              },
+                e('div',null,
+                  e('div',{style:{fontWeight:600}},c?c.name:'--'),
+                  e('div',{style:{fontSize:12,color:t.txt2}},b.service)
+                ),
+                e('div',{style:{color:t.txt2,fontSize:12}},b.vehicle||'--'),
+                e('div',{style:{color:t.txt2,fontSize:12}},d?d.toLocaleDateString(undefined,{month:'short',day:'numeric'}):'--'),
+                e('div',{style:{color:t.txt2,fontSize:12}},b.emp||'--'),
+                e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,fontSize:13}},$$( parseFloat(b.total)||0)),
+                e(Badge,{t:t,k:SC[b.status]||'gray'},b.status)
+              );
+            })
+          )
         ),
-        e('div',{style:{marginTop:16}},
-          e('div',{style:{fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase',marginBottom:8}},'Payment'),
-          [['Service Price',$$( parseFloat(sel.price)||0)],['Tax',$$( parseFloat(sel.tax)||0)],['Deposit Paid',$$( parseFloat(sel.dep)||0)],['Total',$$(parseFloat(sel.total)||0)],['Payment Status',sel.pay||'Unpaid']].map(function(pair){return e('div',{key:pair[0],style:{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid '+t.border,fontSize:13}},e('span',{style:{color:t.txt2}},pair[0]),e('span',{style:{color:t.txt,fontWeight:600,fontFamily:pair[0]==='Total'?"'IBM Plex Mono',monospace":'inherit'}},pair[1]));})
-        ),
-        e('div',{style:{marginTop:16}},
-          e('div',{style:{fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase',marginBottom:8}},'Update Status'),
-          e('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},['Confirmed','Scheduled','On The Way','In Progress','Completed','Cancelled'].map(function(s){return e('button',{key:s,onClick:function(){updateStatus(sel.id,s);},style:{padding:'5px 10px',borderRadius:8,border:'1px solid '+(sel.status===s?t.acc:t.border),background:sel.status===s?t.accS:'transparent',fontSize:12,fontWeight:600,color:sel.status===s?t.acc:t.txt,cursor:'pointer'}},s);}))
-        ),
-        e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:16}},
-          e(Btn,{t:t,onClick:function(){setInvModal(true);}},e(Ic,{n:'file',size:13,color:t.bg==='#000000'?'#000':'#fff'}),'Create Invoice'),
-          e(Btn,{t:t,variant:'danger',onClick:function(){deleteBooking(sel.id);}},e(Ic,{n:'trash',size:13,color:t.err}),'Delete')
+    sel
+      ? e('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:100,display:'flex',justifyContent:'flex-end'},onClick:function(){setSel(null);}},
+          e('div',{style:{width:400,maxWidth:'92vw',background:t.surf,height:'100%',overflowY:'auto',padding:22},onClick:function(ev){ev.stopPropagation();}},
+            e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+              e('span',{style:{fontWeight:700,fontSize:16,color:t.txt}},sel.service||'Booking'),
+              e('button',{onClick:function(){setSel(null);},style:{background:'none',border:'none',cursor:'pointer'}},e(Ic,{n:'x',size:20,color:t.txtM}))
+            ),
+            e(Badge,{t:t,k:SC[sel.status]||'gray'},sel.status),
+            e('div',{style:{marginTop:16}},
+              e('div',{style:{fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase',marginBottom:8}},'Details'),
+              [
+                ['Customer',(DB.find('customers',sel.custId)||{}).name||'--'],
+                ['Vehicle',sel.vehicle||'--'],
+                ['Date',parseDate(sel.date)?parseDate(sel.date).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}):'--'],
+                ['Time',parseDate(sel.date)?parseDate(sel.date).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'--'],
+                ['Employee',sel.emp||'--'],
+                ['Add-ons',sel.addOns||'--'],
+                ['Notes',sel.notes||'--']
+              ].map(function(pair){
+                return e('div',{key:pair[0],style:{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid '+t.border,fontSize:13}},
+                  e('span',{style:{color:t.txt2}},pair[0]),
+                  e('span',{style:{color:t.txt,fontWeight:500,textAlign:'right',maxWidth:'60%'}},pair[1])
+                );
+              })
+            ),
+            e('div',{style:{marginTop:16}},
+              e('div',{style:{fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase',marginBottom:8}},'Payment'),
+              [
+                ['Service Price',$$( parseFloat(sel.price)||0)],
+                ['Tax',$$( parseFloat(sel.tax)||0)],
+                ['Deposit Paid',$$( parseFloat(sel.dep)||0)],
+                ['Total',$$(parseFloat(sel.total)||0)],
+                ['Payment Status',sel.pay||'Unpaid']
+              ].map(function(pair){
+                return e('div',{key:pair[0],style:{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid '+t.border,fontSize:13}},
+                  e('span',{style:{color:t.txt2}},pair[0]),
+                  e('span',{style:{color:t.txt,fontWeight:600,fontFamily:pair[0]==='Total'?"'IBM Plex Mono',monospace":'inherit'}},pair[1])
+                );
+              })
+            ),
+            e('div',{style:{marginTop:16}},
+              e('div',{style:{fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase',marginBottom:8}},'Update Status'),
+              e('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
+                ['Confirmed','Scheduled','On The Way','In Progress','Completed','Cancelled'].map(function(s){
+                  return e('button',{
+                    key:s,
+                    onClick:function(){updateStatus(sel.id,s);},
+                    style:{padding:'5px 10px',borderRadius:8,border:'1px solid '+(sel.status===s?t.acc:t.border),background:sel.status===s?t.accS:'transparent',fontSize:12,fontWeight:600,color:sel.status===s?t.acc:t.txt,cursor:'pointer',fontFamily:'Inter,sans-serif'}
+                  },s);
+                })
+              )
+            ),
+            e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:16}},
+              e(Btn,{t:t,onClick:function(){setInvModal(true);}},e(Ic,{n:'file',size:13,color:t.bg==='#000000'?'#000':'#fff'}),'Create Invoice'),
+              e(Btn,{t:t,variant:'danger',onClick:function(){deleteBooking(sel.id);}},e(Ic,{n:'trash',size:13,color:t.err}),'Delete')
+            )
+          )
         )
-      )
-    ):null,
+      : null,
     invModal&&sel?e(InvoiceModal,{t:t,onClose:function(){setInvModal(false);},onSave:function(){},booking:sel,mobile:mobile}):null
   );
 }
 
 /* CUSTOMERS PAGE */
 function Customers(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh;
-  var custs=useState(DB.get('customers'));var all=custs[0];var setAll=custs[1];
-  var qS=useState('');var q=qS[0];var setQ=qS[1];
-  var selS=useState(null);var sel=selS[0];var setSel=selS[1];
-  var modalS=useState(false);var modal=modalS[0];var setModal=modalS[1];
-  var editS=useState(null);var editCust=editS[0];var setEditCust=editS[1];
-  var bookingModalS=useState(false);var bookingModal=bookingModalS[0];var setBookingModal=bookingModalS[1];
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
+  var allS=useState(DB.get('customers'));
+  var all=allS[0];
+  var setAll=allS[1];
+  var qS=useState('');
+  var q=qS[0];
+  var setQ=qS[1];
+  var selS=useState(null);
+  var sel=selS[0];
+  var setSel=selS[1];
+  var modalS=useState(false);
+  var modal=modalS[0];
+  var setModal=modalS[1];
+  var editS=useState(null);
+  var editCust=editS[0];
+  var setEditCust=editS[1];
+  var bkModalS=useState(false);
+  var bkModal=bkModalS[0];
+  var setBkModal=bkModalS[1];
 
   useEffect(function(){setAll(DB.get('customers'));},[ refresh]);
-  function reload(){setAll(DB.get('customers'));if(sel){setSel(DB.find('customers',sel.id)||null);}}
 
-  var filtered=all.filter(function(c){return c.name.toLowerCase().indexOf(q.toLowerCase())>=0||(c.phone||'').indexOf(q)>=0||(c.email||'').toLowerCase().indexOf(q.toLowerCase())>=0;});
+  function reload(){
+    setAll(DB.get('customers'));
+    if(sel){setSel(DB.find('customers',sel.id)||null);}
+  }
 
-  function deleteCust(id){if(confirm('Delete this customer? This cannot be undone.')){DB.remove('customers',id);reload();setSel(null);}}
+  var filtered=all.filter(function(c){
+    var ql=q.toLowerCase();
+    return c.name.toLowerCase().indexOf(ql)>=0||(c.phone||'').indexOf(q)>=0||(c.email||'').toLowerCase().indexOf(ql)>=0;
+  });
+
+  function deleteCust(id){
+    if(!confirm('Delete this customer?')){return;}
+    DB.remove('customers',id);
+    reload();
+    setSel(null);
+  }
 
   function getCustStats(id){
     var bks=DB.get('bookings').filter(function(b){return b.custId===id;});
-    var ltv=bks.filter(function(b){return b.pay==='Paid'||b.status==='Completed';}).reduce(function(s,b){return s+(parseFloat(b.total)||0);},0);
-    return{total:bks.length,completed:bks.filter(function(b){return b.status==='Completed';}).length,ltv:ltv,last:bks.sort(function(a,b){return (parseDate(b.date)||0)-(parseDate(a.date)||0);})[0]||null};
+    var comp=bks.filter(function(b){return b.status==='Completed';});
+    var ltv=comp.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0);
+    return {total:bks.length,completed:comp.length,ltv:ltv};
   }
 
-  return e('div',{style:{display:'flex',flexDirection:'column',gap:0}},
+  var listEl=filtered.length===0
+    ? e('div',{style:{padding:30,textAlign:'center',color:t.txtM,fontSize:13}},all.length===0?'No customers yet. Click + to add.':'No results.')
+    : filtered.map(function(c){
+        var stats=getCustStats(c.id);
+        var isActive=sel&&sel.id===c.id;
+        return e('div',{
+          key:c.id,
+          onClick:function(){setSel(c);},
+          style:{padding:'12px 14px',cursor:'pointer',borderBottom:'1px solid '+t.border,background:isActive?t.accS:'transparent'}
+        },
+          e('div',{style:{fontWeight:600,fontSize:14,color:isActive?t.acc:t.txt}},c.name),
+          e('div',{style:{fontSize:12,color:t.txt2,marginTop:2}},
+            (c.vehicles&&c.vehicles[0]?c.vehicles[0].year+' '+c.vehicles[0].make+' '+c.vehicles[0].model:'No vehicle')+(stats.total?' - '+stats.total+' booking'+(stats.total!==1?'s':''):'')
+          ),
+          e('div',{style:{fontSize:11,color:t.txtM,marginTop:1}},c.phone||c.email||'')
+        );
+      });
+
+  var selDetail=null;
+  if(sel){
+    var stats=getCustStats(sel.id);
+    var bksForSel=DB.get('bookings').filter(function(b){return b.custId===sel.id;}).sort(function(a,b){return (parseDate(b.date)||0)-(parseDate(a.date)||0);});
+    selDetail=e('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+      e(Card,{t:t,style:{padding:20}},
+        e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}},
+          e('div',null,
+            e('div',{style:{fontWeight:700,fontSize:18,color:t.txt}},sel.name),
+            e('div',{style:{fontSize:12,color:t.txt2,marginTop:3}},sel.referral?'via '+sel.referral:'')
+          ),
+          e('div',{style:{display:'flex',gap:7}},
+            e('button',{onClick:function(){setEditCust(sel);setModal(true);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'edit',size:14,color:t.txt2})),
+            e('button',{onClick:function(){deleteCust(sel.id);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.errS,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'trash',size:14,color:t.err}))
+          )
+        ),
+        e('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}},
+          e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Lifetime Value'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},$$(stats.ltv))),
+          e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Total Jobs'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},stats.total)),
+          e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Completed'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},stats.completed))
+        ),
+        sel.phone?e('div',{style:{fontSize:13.5,color:t.txt,marginBottom:4}},e('a',{href:'tel:'+sel.phone,style:{color:t.acc}},sel.phone)):null,
+        sel.email?e('div',{style:{fontSize:13.5,color:t.txt,marginBottom:4}},e('a',{href:'mailto:'+sel.email,style:{color:t.acc}},sel.email)):null,
+        sel.address?e('div',{style:{fontSize:13.5,color:t.txt,marginBottom:4}},sel.address):null,
+        sel.notes?e('div',{style:{marginTop:10,padding:'10px 12px',background:t.surf2,borderRadius:9,fontSize:13,color:t.txt2}},sel.notes):null,
+        e('div',{style:{display:'flex',gap:8,marginTop:14,flexWrap:'wrap'}},
+          e(Btn,{t:t,onClick:function(){setBkModal(true);}},e(Ic,{n:'calendar',size:13,color:t.bg==='#000000'?'#000':'#fff'}),'Book Again'),
+          sel.phone?e('a',{href:'tel:'+sel.phone,style:{display:'inline-flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,background:t.surf2,color:t.txt,border:'1px solid '+t.border,fontSize:13,fontWeight:600,textDecoration:'none',fontFamily:'Inter,sans-serif'}},e(Ic,{n:'phone',size:13,color:t.txt}),'Call'):null,
+          sel.phone?e('a',{href:'sms:'+sel.phone,style:{display:'inline-flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,background:t.surf2,color:t.txt,border:'1px solid '+t.border,fontSize:13,fontWeight:600,textDecoration:'none',fontFamily:'Inter,sans-serif'}},e(Ic,{n:'send',size:13,color:t.txt}),'Text'):null,
+          sel.email?e('a',{href:'mailto:'+sel.email,style:{display:'inline-flex',alignItems:'center',gap:6,padding:'9px 16px',borderRadius:9,background:t.surf2,color:t.txt,border:'1px solid '+t.border,fontSize:13,fontWeight:600,textDecoration:'none',fontFamily:'Inter,sans-serif'}},e(Ic,{n:'mail',size:13,color:t.txt}),'Email'):null
+        )
+      ),
+      sel.vehicles&&sel.vehicles.length>0
+        ? e(Card,{t:t,style:{padding:18}},
+            e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:10}},'Vehicles'),
+            e('div',{style:{display:'flex',gap:8,flexWrap:'wrap'}},
+              sel.vehicles.map(function(v,i){
+                return e('div',{key:i,style:{display:'flex',alignItems:'center',gap:6,padding:'7px 12px',borderRadius:9,border:'1px solid '+t.border,fontSize:13,color:t.txt}},
+                  e(Ic,{n:'car',size:13,color:t.txtM}),
+                  [v.year,v.make,v.model,v.color].filter(Boolean).join(' ')
+                );
+              })
+            )
+          )
+        : null,
+      e(Card,{t:t,style:{padding:18}},
+        e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:10}},'Service History'),
+        bksForSel.length===0
+          ? e('div',{style:{fontSize:13,color:t.txtM}},'No bookings yet.')
+          : bksForSel.map(function(b){
+              var d=parseDate(b.date);
+              return e('div',{key:b.id,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+t.border}},
+                e('div',null,
+                  e('div',{style:{fontWeight:600,fontSize:13.5,color:t.txt}},b.service),
+                  e('div',{style:{fontSize:12,color:t.txt2}},d?d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'--')
+                ),
+                e('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                  e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:13}},$$(parseFloat(b.total)||0)),
+                  e(Badge,{t:t,k:SC[b.status]||'gray'},b.status)
+                )
+              );
+            })
+      )
+    );
+  }
+
+  return e('div',null,
     modal?e(CustomerModal,{t:t,onClose:function(){setModal(false);setEditCust(null);},onSave:reload,existing:editCust,mobile:mobile}):null,
-    bookingModal&&sel?e(BookingModal,{t:t,onClose:function(){setBookingModal(false);},onSave:reload,mobile:mobile}):null,
+    bkModal&&sel?e(BookingModal,{t:t,onClose:function(){setBkModal(false);},onSave:reload,mobile:mobile}):null,
     e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'300px 1fr',gap:14}},
       e(Card,{t:t,style:{overflow:'hidden'}},
         e('div',{style:{padding:'12px 14px',borderBottom:'1px solid '+t.border,display:'flex',gap:8,alignItems:'center'}},
-          e('div',{style:{display:'flex',alignItems:'center',gap:7,background:t.surf2,borderRadius:9,padding:'7px 10px',flex:1}},e(Ic,{n:'search',size:14,color:t.txtM}),e('input',{value:q,onChange:function(ev){setQ(ev.target.value);},placeholder:'Search customers...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,width:'100%',fontFamily:'Inter,sans-serif'}})),
-          e('button',{onClick:function(){setEditCust(null);setModal(true);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.acc,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},e(Ic,{n:'plus',size:15,color:t.bg==='#000000'?'#000':'#fff'}))
+          e('div',{style:{display:'flex',alignItems:'center',gap:7,background:t.surf2,borderRadius:9,padding:'7px 10px',flex:1}},
+            e(Ic,{n:'search',size:14,color:t.txtM}),
+            e('input',{value:q,onChange:function(ev){setQ(ev.target.value);},placeholder:'Search customers...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,width:'100%',fontFamily:'Inter,sans-serif'}})
+          ),
+          e('button',{
+            onClick:function(){setEditCust(null);setModal(true);},
+            style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.acc,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}
+          },e(Ic,{n:'plus',size:15,color:t.bg==='#000000'?'#000':'#fff'}))
         ),
-        e('div',{style:{maxHeight:mobile?200:540,overflowY:'auto'}},
-          filtered.length===0?e('div',{style:{padding:30,textAlign:'center',color:t.txtM,fontSize:13}},all.length===0?'No customers yet. Click + to add.':'No results.'):
-          filtered.map(function(c){
-            var stats=getCustStats(c.id);
-            return e('div',{key:c.id,onClick:function(){setSel(c);},style:{padding:'12px 14px',cursor:'pointer',borderBottom:'1px solid '+t.border,background:sel&&sel.id===c.id?t.accS:'transparent'}},
-              e('div',{style:{fontWeight:600,fontSize:14,color:sel&&sel.id===c.id?t.acc:t.txt}},c.name),
-              e('div',{style:{fontSize:12,color:t.txt2,marginTop:2}},(c.vehicles&&c.vehicles[0]?c.vehicles[0].year+' '+c.vehicles[0].make+' '+c.vehicles[0].model:'No vehicle')+(stats.total?' · '+stats.total+' booking'+(stats.total!==1?'s':''):'')),
-              e('div',{style:{fontSize:11,color:t.txtM,marginTop:1}},c.phone||c.email||'')
-            );
-          })
-        )
+        e('div',{style:{maxHeight:mobile?200:540,overflowY:'auto'}},listEl)
       ),
-      sel?e('div',{style:{display:'flex',flexDirection:'column',gap:14}},
-        e(Card,{t:t,style:{padding:20}},
-          e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}},
-            e('div',null,e('div',{style:{fontWeight:700,fontSize:18,color:t.txt}},sel.name),e('div',{style:{fontSize:12,color:t.txt2,marginTop:3}},sel.referral?'via '+sel.referral:'')),
-            e('div',{style:{display:'flex',gap:7}},
-              e('button',{onClick:function(){setEditCust(sel);setModal(true);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'edit',size:14,color:t.txt2})),
-              e('button',{onClick:function(){deleteCust(sel.id);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.errS,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'trash',size:14,color:t.err}))
-            )
-          ),
-          e('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}},
-            e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Lifetime Value'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},$$(getCustStats(sel.id).ltv))),
-            e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Jobs'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},getCustStats(sel.id).total)),
-            e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Completed'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},getCustStats(sel.id).completed))
-          ),
-          [['Phone',sel.phone,sel.phone?'tel:'+sel.phone:null],['Email',sel.email,sel.email?'mailto:'+sel.email:null],['Address',sel.address,null]].filter(function(r){return r[1];}).map(function(row){return e('div',{key:row[0],style:{display:'flex',alignItems:'center',gap:8,marginBottom:6,fontSize:13.5,color:t.txt}},row[2]?e('a',{href:row[2],style:{color:t.acc,fontSize:13.5}},row[1]):e('span',null,row[1]));})  ,
-          sel.notes?e('div',{style:{marginTop:10,padding:'10px 12px',background:t.surf2,borderRadius:9,fontSize:13,color:t.txt2}},sel.notes):null,
-          e('div',{style:{display:'flex',gap:8,marginTop:14,flexWrap:'wrap'}},
-            e(Btn,{t:t,onClick:function(){setBookingModal(true);}},e(Ic,{n:'calendar',size:13,color:t.bg==='#000000'?'#000':'#fff'}),'Book Again'),
-            sel.phone?e(Btn,{t:t,variant:'secondary'},e('a',{href:'tel:'+sel.phone,style:{color:t.txt,textDecoration:'none',display:'flex',alignItems:'center',gap:6}},e(Ic,{n:'phone',size:13,color:t.txt}),'Call')):null,
-            sel.phone?e(Btn,{t:t,variant:'secondary'},e('a',{href:'sms:'+sel.phone,style:{color:t.txt,textDecoration:'none',display:'flex',alignItems:'center',gap:6}},e(Ic,{n:'send',size:13,color:t.txt}),'Text')):null,
-            sel.email?e(Btn,{t:t,variant:'secondary'},e('a',{href:'mailto:'+sel.email,style:{color:t.txt,textDecoration:'none',display:'flex',alignItems:'center',gap:6}},e(Ic,{n:'mail',size:13,color:t.txt}),'Email')):null
-          )
-        ),
-        sel.vehicles&&sel.vehicles.length>0?e(Card,{t:t,style:{padding:18}},e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:10}},'Vehicles'),e('div',{style:{display:'flex',gap:8,flexWrap:'wrap'}},sel.vehicles.map(function(v,i){return e('div',{key:i,style:{display:'flex',alignItems:'center',gap:6,padding:'7px 12px',borderRadius:9,border:'1px solid '+t.border,fontSize:13,color:t.txt}},e(Ic,{n:'car',size:13,color:t.txtM}),[v.year,v.make,v.model,v.color].filter(Boolean).join(' '));}))) :null,
-        e(Card,{t:t,style:{padding:18}},e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:10}},'Service History'),
-          DB.get('bookings').filter(function(b){return b.custId===sel.id;}).sort(function(a,b){return (parseDate(b.date)||0)-(parseDate(a.date)||0);}).length===0
-            ?e('div',{style:{fontSize:13,color:t.txtM}},'No bookings yet.')
-            :DB.get('bookings').filter(function(b){return b.custId===sel.id;}).sort(function(a,b){return (parseDate(b.date)||0)-(parseDate(a.date)||0);}).map(function(b){
-              var d=parseDate(b.date);
-              return e('div',{key:b.id,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+t.border}},
-                e('div',null,e('div',{style:{fontWeight:600,fontSize:13.5,color:t.txt}},b.service),e('div',{style:{fontSize:12,color:t.txt2}},d?d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—')),
-                e('div',{style:{display:'flex',alignItems:'center',gap:8}},e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:13}},$$( parseFloat(b.total)||0)),e(Badge,{t:t,k:STATUS_COLOR[b.status]||'gray'},b.status))
-              );
-            })
-        )
-      ):e(Card,{t:t,style:{padding:40,textAlign:'center'}},e(Empty,{t:t,title:'Select a customer',sub:'Click a customer to view their profile'}))
+      selDetail||e(Card,{t:t,style:{padding:40,textAlign:'center'}},e(Empty,{t:t,title:'Select a customer',sub:'Click a customer to view their profile'}))
     )
   );
 }
 
 /* CALENDAR PAGE */
 function CalendarView(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh;
-  var curS=useState(new Date());var cur=curS[0];var setCur=curS[1];
-  var selDayS=useState(new Date());var selDay=selDayS[0];var setSelDay=selDayS[1];
-  var yr=cur.getFullYear(),mo=cur.getMonth();
-  var firstDay=new Date(yr,mo,1).getDay(),dim=new Date(yr,mo+1,0).getDate();
-  var cells=[];for(var i=0;i<firstDay;i++)cells.push(null);for(var j=1;j<=dim;j++)cells.push(j);
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
+  var curS=useState(new Date());
+  var cur=curS[0];
+  var setCur=curS[1];
+  var selDayS=useState(new Date());
+  var selDay=selDayS[0];
+  var setSelDay=selDayS[1];
+  var yr=cur.getFullYear();
+  var mo=cur.getMonth();
+  var firstDay=new Date(yr,mo,1).getDay();
+  var dim=new Date(yr,mo+1,0).getDate();
+  var cells=[];
+  var i;
+  for(i=0;i<firstDay;i++){cells.push(null);}
+  for(i=1;i<=dim;i++){cells.push(i);}
   var bookings=DB.get('bookings');
-  function bksOn(day){if(!day)return[];return bookings.filter(function(b){var d=parseDate(b.date);return d&&sameDay(d,new Date(yr,mo,day));});}
+  function bksOn(day){
+    if(!day){return [];}
+    return bookings.filter(function(b){var d=parseDate(b.date);return d&&sameDay(d,new Date(yr,mo,day));});
+  }
   var selBks=bookings.filter(function(b){var d=parseDate(b.date);return d&&sameDay(d,selDay);}).sort(function(a,b){return (parseDate(a.date)||0)-(parseDate(b.date)||0);});
   return e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'1fr 300px',gap:14}},
     e(Card,{t:t,style:{padding:18}},
@@ -497,11 +1067,25 @@ function CalendarView(props){
         )
       ),
       e('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}},
-        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function(d){return e('div',{key:d,style:{fontSize:11,fontWeight:700,color:t.txtM,textAlign:'center',padding:'3px 0'}},d);}),
-        cells.map(function(day,i){
-          var jobs=bksOn(day);var isSel=day&&sameDay(new Date(yr,mo,day),selDay);var isToday=day&&sameDay(new Date(yr,mo,day),new Date());
-          return e('div',{key:i,onClick:function(){if(day)setSelDay(new Date(yr,mo,day));},style:{minHeight:mobile?50:68,borderRadius:9,padding:5,cursor:day?'pointer':'default',border:'1px solid '+(isSel?t.acc:t.border),background:isSel?t.accS:t.surf2}},
-            day?e('div',null,e('div',{style:{fontSize:12,fontWeight:isToday?700:500,color:isToday?t.acc:t.txt2}},day),e('div',{style:{display:'flex',flexWrap:'wrap',gap:2,marginTop:2}},jobs.slice(0,4).map(function(j,ji){return e('div',{key:ji,style:{width:6,height:6,borderRadius:'50%',background:sc(t,STATUS_COLOR[j.status]||'gray').fg}});}))
+        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function(d){
+          return e('div',{key:d,style:{fontSize:11,fontWeight:700,color:t.txtM,textAlign:'center',padding:'3px 0'}},d);
+        }),
+        cells.map(function(day,idx){
+          var jobs=bksOn(day);
+          var isSel=day&&sameDay(new Date(yr,mo,day),selDay);
+          var isToday=day&&sameDay(new Date(yr,mo,day),new Date());
+          return e('div',{
+            key:idx,
+            onClick:function(){if(day){setSelDay(new Date(yr,mo,day));}},
+            style:{minHeight:mobile?50:68,borderRadius:9,padding:5,cursor:day?'pointer':'default',border:'1px solid '+(isSel?t.acc:t.border),background:isSel?t.accS:t.surf2}
+          },
+            day?e('div',null,
+              e('div',{style:{fontSize:12,fontWeight:isToday?700:500,color:isToday?t.acc:t.txt2}},day),
+              e('div',{style:{display:'flex',flexWrap:'wrap',gap:2,marginTop:2}},
+                jobs.slice(0,4).map(function(j,ji){
+                  return e('div',{key:ji,style:{width:6,height:6,borderRadius:'50%',background:sc(t,SC[j.status]||'gray').fg}});
+                })
+              )
             ):null
           );
         })
@@ -510,52 +1094,80 @@ function CalendarView(props){
     e(Card,{t:t,style:{padding:18}},
       e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:4}},selDay.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})),
       e('div',{style:{fontSize:12,color:t.txt2,marginBottom:12}},selBks.length+' job'+(selBks.length!==1?'s':'')+' scheduled'),
-      selBks.length===0?e('div',{style:{fontSize:13,color:t.txtM}},'No jobs scheduled.'):
-      selBks.map(function(b){
-        var c=DB.find('customers',b.custId);var d=parseDate(b.date);
-        return e('div',{key:b.id,style:{padding:'10px 12px',borderRadius:9,border:'1px solid '+t.border,marginBottom:8}},
-          e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:t.txt2}},d?d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'—'),e(Badge,{t:t,k:STATUS_COLOR[b.status]||'gray'},b.status)),
-          e('div',{style:{fontWeight:600,fontSize:13.5,color:t.txt,marginTop:4}},c?c.name:'—'),
-          e('div',{style:{fontSize:12,color:t.txt2}},b.service+(b.emp?' · '+b.emp:''))
-        );
-      })
+      selBks.length===0
+        ? e('div',{style:{fontSize:13,color:t.txtM}},'No jobs scheduled.')
+        : selBks.map(function(b){
+            var c=DB.find('customers',b.custId);
+            var d=parseDate(b.date);
+            return e('div',{key:b.id,style:{padding:'10px 12px',borderRadius:9,border:'1px solid '+t.border,marginBottom:8}},
+              e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:t.txt2}},d?d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'--'),
+                e(Badge,{t:t,k:SC[b.status]||'gray'},b.status)
+              ),
+              e('div',{style:{fontWeight:600,fontSize:13.5,color:t.txt,marginTop:4}},c?c.name:'--'),
+              e('div',{style:{fontSize:12,color:t.txt2}},b.service+(b.emp?' - '+b.emp:''))
+            );
+          })
     )
   );
 }
 
 /* INVOICES PAGE */
 function Invoices(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh;
-  var invS=useState(DB.get('invoices'));var invs=invS[0];var setInvs=invS[1];
-  var filterS=useState('All');var filter=filterS[0];var setFilter=filterS[1];
-  var modalS=useState(false);var modal=modalS[0];var setModal=modalS[1];
-  var selS=useState(null);var sel=selS[0];var setSel=selS[1];
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
+  var invS=useState(DB.get('invoices'));
+  var invs=invS[0];
+  var setInvs=invS[1];
+  var filterS=useState('All');
+  var filter=filterS[0];
+  var setFilter=filterS[1];
+  var modalS=useState(false);
+  var modal=modalS[0];
+  var setModal=modalS[1];
+  var selS=useState(null);
+  var sel=selS[0];
+  var setSel=selS[1];
 
   useEffect(function(){setInvs(DB.get('invoices'));},[ refresh]);
   function reload(){setInvs(DB.get('invoices'));}
 
-  var shown=invs.filter(function(inv){return filter==='All'||inv.status===filter;}).sort(function(a,b){return new Date(b.createdAt||0)-new Date(a.createdAt||0);});
+  var shown=invs.filter(function(inv){return filter==='All'||inv.status===filter;}).sort(function(a,b){
+    return new Date(b.createdAt||0)-new Date(a.createdAt||0);
+  });
   var collected=invs.filter(function(inv){return inv.status==='Paid';}).reduce(function(s,inv){return s+(parseFloat(inv.total)||0);},0);
   var outstanding=invs.filter(function(inv){return inv.status!=='Paid';}).reduce(function(s,inv){return s+(parseFloat(inv.total)||0);},0);
 
-  function markPaid(id){DB.update('invoices',id,{status:'Paid',paidDate:new Date().toISOString().slice(0,10)});reload();var upd=DB.find('invoices',id);setSel(upd);}
-  function deleteInv(id){if(confirm('Delete this invoice?')){DB.remove('invoices',id);reload();setSel(null);}}
-
+  function markPaid(id){
+    DB.update('invoices',id,{status:'Paid',paidDate:new Date().toISOString().slice(0,10)});
+    reload();
+    setSel(DB.find('invoices',id));
+  }
+  function deleteInv(id){
+    if(!confirm('Delete this invoice?')){return;}
+    DB.remove('invoices',id);
+    reload();
+    setSel(null);
+  }
   function printInvoice(inv){
     var w=window.open('','_blank');
-    w.document.write('<html><head><title>'+inv.num+'</title><style>body{font-family:Inter,sans-serif;max-width:700px;margin:40px auto;color:#000;}h1{font-size:24px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;margin:20px 0;}td,th{padding:10px;text-align:left;border-bottom:1px solid #eee;}.total{font-size:18px;font-weight:700;}.mono{font-family:monospace;}</style></head><body>');
-    w.document.write('<h1>Bay Area Auto Care</h1><p>415-717-9895 · bayareaautocare.info@gmail.com</p><hr/>');
+    w.document.write('<html><head><title>'+inv.num+'</title>');
+    w.document.write('<style>body{font-family:Inter,sans-serif;max-width:700px;margin:40px auto;color:#000;}h1{font-size:24px;}table{width:100%;border-collapse:collapse;margin:20px 0;}td,th{padding:10px;text-align:left;border-bottom:1px solid #eee;}.total{font-size:18px;font-weight:700;}.mono{font-family:monospace;}</style>');
+    w.document.write('</head><body>');
+    w.document.write('<h1>Bay Area Auto Care</h1><p>415-717-9895 - bayareaautocare.info@gmail.com</p><hr/>');
     w.document.write('<h2>Invoice '+inv.num+'</h2>');
-    w.document.write('<p><strong>Bill To:</strong> '+inv.custName+'<br/>Vehicle: '+(inv.vehicle||'—')+'<br/>Due: '+inv.dueDate+'</p>');
+    w.document.write('<p><strong>Bill To:</strong> '+inv.custName+'<br/>Vehicle: '+(inv.vehicle||'--')+'<br/>Due: '+inv.dueDate+'</p>');
     w.document.write('<table><tr><th>Description</th><th>Amount</th></tr>');
-    w.document.write('<tr><td>'+inv.service+'</td><td class="mono">$'+parseFloat(inv.price||0).toFixed(2)+'</td></tr>');
-    if(inv.addOns)w.document.write('<tr><td>Add-ons: '+inv.addOns+'</td><td>—</td></tr>');
+    w.document.write('<tr><td>'+(inv.service||'Service')+'</td><td class="mono">$'+parseFloat(inv.price||0).toFixed(2)+'</td></tr>');
+    if(inv.addOns){w.document.write('<tr><td>Add-ons: '+inv.addOns+'</td><td>--</td></tr>');}
     w.document.write('<tr><td>Tax</td><td class="mono">$'+parseFloat(inv.tax||0).toFixed(2)+'</td></tr>');
-    if(parseFloat(inv.discount||0)>0)w.document.write('<tr><td>Discount</td><td class="mono">-$'+parseFloat(inv.discount||0).toFixed(2)+'</td></tr>');
-    w.document.write('<tr><td class="total">Total</td><td class="mono total">$'+parseFloat(inv.total||0).toFixed(2)+'</td></tr></table>');
-    w.document.write('<p>Status: <strong>'+inv.status+'</strong></p>');
+    if(parseFloat(inv.discount||0)>0){w.document.write('<tr><td>Discount</td><td class="mono">-$'+parseFloat(inv.discount||0).toFixed(2)+'</td></tr>');}
+    w.document.write('<tr><td class="total">Total</td><td class="mono total">$'+parseFloat(inv.total||0).toFixed(2)+'</td></tr>');
+    w.document.write('</table><p>Status: <strong>'+inv.status+'</strong></p>');
     w.document.write('</body></html>');
-    w.document.close();w.print();
+    w.document.close();
+    w.print();
   }
 
   return e('div',null,
@@ -565,165 +1177,276 @@ function Invoices(props){
       e(KpiCard,{t:t,label:'Outstanding',value:$$(outstanding),icon:'receipt',trend:'down'}),
       e(KpiCard,{t:t,label:'Total Invoices',value:invs.length,icon:'file'})
     ),
-    e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}},
-      e('div',{style:{display:'flex',gap:7}},['All','Paid','Partial','Unpaid'].map(function(f){return e('button',{key:f,onClick:function(){setFilter(f);},style:{fontSize:12,fontWeight:600,padding:'6px 12px',borderRadius:999,cursor:'pointer',border:'1px solid '+(filter===f?t.acc:t.border),background:filter===f?t.accS:'transparent',color:filter===f?t.acc:t.txt2}},f);})),
+    e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,gap:8,flexWrap:'wrap'}},
+      e('div',{style:{display:'flex',gap:7}},
+        ['All','Paid','Partial','Unpaid'].map(function(f2){
+          return e('button',{
+            key:f2,
+            onClick:function(){setFilter(f2);},
+            style:{fontSize:12,fontWeight:600,padding:'6px 12px',borderRadius:999,cursor:'pointer',border:'1px solid '+(filter===f2?t.acc:t.border),background:filter===f2?t.accS:'transparent',color:filter===f2?t.acc:t.txt2,fontFamily:'Inter,sans-serif'}
+          },f2);
+        })
+      ),
       e(Btn,{t:t,onClick:function(){setModal(true);}},e(Ic,{n:'plus',size:14,color:t.bg==='#000000'?'#000':'#fff'}),'New Invoice')
     ),
-    shown.length===0?e(Empty,{t:t,title:'No invoices',sub:'Create invoices from bookings or click "New Invoice"'}):
-    e('div',{style:{overflowX:'auto'}},e(Card,{t:t,style:{overflow:'hidden',minWidth:520}},
-      e('div',{style:{display:'grid',gridTemplateColumns:'0.9fr 1.4fr 0.9fr 0.8fr 0.9fr',padding:'11px 18px',borderBottom:'1px solid '+t.border,fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase'}},e('div',null,'Invoice'),e('div',null,'Customer'),e('div',null,'Total'),e('div',null,'Due'),e('div',null,'Status')),
-      shown.map(function(inv){return e('div',{key:inv.id,onClick:function(){setSel(inv);},style:{display:'grid',gridTemplateColumns:'0.9fr 1.4fr 0.9fr 0.8fr 0.9fr',padding:'13px 18px',borderBottom:'1px solid '+t.border,cursor:'pointer',fontSize:13.5,color:t.txt,alignItems:'center'}},
-        e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:12}},inv.num),
-        e('div',{style:{fontWeight:600}},inv.custName||'—'),
-        e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600}},$$(parseFloat(inv.total)||0)),
-        e('div',{style:{fontSize:12,color:t.txt2}},inv.dueDate||'—'),
-        e(Badge,{t:t,k:inv.status==='Paid'?'ok':inv.status==='Partial'?'gold':'err'},inv.status)
-      );})
-    )),
-    sel?e('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:100,display:'flex',justifyContent:'flex-end'},onClick:function(){setSel(null);}},
-      e('div',{style:{width:380,maxWidth:'92vw',background:t.surf,height:'100%',overflowY:'auto',padding:22},onClick:function(ev){ev.stopPropagation();}},
-        e('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:14}},e('span',{style:{fontWeight:700,fontSize:16,color:t.txt}},sel.num),e('button',{onClick:function(){setSel(null);},style:{background:'none',border:'none',cursor:'pointer'}},e(Ic,{n:'x',size:20,color:t.txtM}))),
-        e(Badge,{t:t,k:sel.status==='Paid'?'ok':sel.status==='Partial'?'gold':'err'},sel.status),
-        e('div',{style:{marginTop:16,fontSize:13,color:t.txt2,lineHeight:1.8}},
-          e('div',null,e('strong',null,'Customer: '),sel.custName),
-          e('div',null,e('strong',null,'Vehicle: '),sel.vehicle||'—'),
-          e('div',null,e('strong',null,'Service: '),sel.service||'—'),
-          sel.addOns?e('div',null,e('strong',null,'Add-ons: '),sel.addOns):null,
-          e('div',null,e('strong',null,'Due: '),sel.dueDate||'—')
+    shown.length===0
+      ? e(Empty,{t:t,title:'No invoices',sub:'Create invoices from bookings or click "New Invoice"'})
+      : e('div',{style:{overflowX:'auto'}},
+          e(Card,{t:t,style:{overflow:'hidden',minWidth:520}},
+            e('div',{style:{display:'grid',gridTemplateColumns:'0.9fr 1.4fr 0.9fr 0.8fr 0.9fr',padding:'11px 18px',borderBottom:'1px solid '+t.border,fontSize:11,fontWeight:700,color:t.txtM,textTransform:'uppercase'}},
+              e('div',null,'Invoice'),e('div',null,'Customer'),e('div',null,'Total'),e('div',null,'Due'),e('div',null,'Status')
+            ),
+            shown.map(function(inv){
+              return e('div',{
+                key:inv.id,
+                onClick:function(){setSel(inv);},
+                style:{display:'grid',gridTemplateColumns:'0.9fr 1.4fr 0.9fr 0.8fr 0.9fr',padding:'13px 18px',borderBottom:'1px solid '+t.border,cursor:'pointer',fontSize:13.5,color:t.txt,alignItems:'center'}
+              },
+                e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:12}},inv.num),
+                e('div',{style:{fontWeight:600}},inv.custName||'--'),
+                e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600}},$$(parseFloat(inv.total)||0)),
+                e('div',{style:{fontSize:12,color:t.txt2}},inv.dueDate||'--'),
+                e(Badge,{t:t,k:inv.status==='Paid'?'ok':inv.status==='Partial'?'gold':'err'},inv.status)
+              );
+            })
+          )
         ),
-        e(Divider,{t:t}),
-        [['Price',$$( parseFloat(sel.price)||0)],['Tax',$$(parseFloat(sel.tax)||0)],['Discount','-'+($$( parseFloat(sel.discount)||0))],['Total',$$(parseFloat(sel.total)||0)]].map(function(row){return e('div',{key:row[0],style:{display:'flex',justifyContent:'space-between',padding:'6px 0',fontSize:13,borderBottom:'1px solid '+t.border}},e('span',{style:{color:t.txt2}},row[0]),e('span',{style:{color:t.txt,fontWeight:row[0]==='Total'?700:400,fontFamily:row[0]==='Total'?"'IBM Plex Mono',monospace":'inherit'}},row[1]));}),
-        e('div',{style:{display:'flex',flexDirection:'column',gap:8,marginTop:16}},
-          sel.status!=='Paid'?e(Btn,{t:t,onClick:function(){markPaid(sel.id);}},e(Ic,{n:'check',size:13,color:t.bg==='#000000'?'#000':'#fff'}),'Mark as Paid'):null,
-          e(Btn,{t:t,variant:'secondary',onClick:function(){printInvoice(sel);}},e(Ic,{n:'print',size:13,color:t.txt}),'Print / Save PDF'),
-          e(Btn,{t:t,variant:'danger',onClick:function(){deleteInv(sel.id);}},e(Ic,{n:'trash',size:13,color:t.err}),'Delete')
+    sel
+      ? e('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:100,display:'flex',justifyContent:'flex-end'},onClick:function(){setSel(null);}},
+          e('div',{style:{width:380,maxWidth:'92vw',background:t.surf,height:'100%',overflowY:'auto',padding:22},onClick:function(ev){ev.stopPropagation();}},
+            e('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:14}},
+              e('span',{style:{fontWeight:700,fontSize:16,color:t.txt}},sel.num),
+              e('button',{onClick:function(){setSel(null);},style:{background:'none',border:'none',cursor:'pointer'}},e(Ic,{n:'x',size:20,color:t.txtM}))
+            ),
+            e(Badge,{t:t,k:sel.status==='Paid'?'ok':sel.status==='Partial'?'gold':'err'},sel.status),
+            e('div',{style:{marginTop:16,fontSize:13,color:t.txt2,lineHeight:1.8}},
+              e('div',null,e('strong',null,'Customer: '),sel.custName),
+              e('div',null,e('strong',null,'Vehicle: '),sel.vehicle||'--'),
+              e('div',null,e('strong',null,'Service: '),sel.service||'--'),
+              sel.addOns?e('div',null,e('strong',null,'Add-ons: '),sel.addOns):null,
+              e('div',null,e('strong',null,'Due: '),sel.dueDate||'--')
+            ),
+            e('div',{style:{borderTop:'1px solid '+t.border,margin:'12px 0'}}),
+            [['Price',$$(parseFloat(sel.price)||0)],['Tax',$$(parseFloat(sel.tax)||0)],['Discount','-'+$$(parseFloat(sel.discount)||0)],['Total',$$(parseFloat(sel.total)||0)]].map(function(row){
+              return e('div',{key:row[0],style:{display:'flex',justifyContent:'space-between',padding:'6px 0',fontSize:13,borderBottom:'1px solid '+t.border}},
+                e('span',{style:{color:t.txt2}},row[0]),
+                e('span',{style:{color:t.txt,fontWeight:row[0]==='Total'?700:400,fontFamily:row[0]==='Total'?"'IBM Plex Mono',monospace":'inherit'}},row[1])
+              );
+            }),
+            e('div',{style:{display:'flex',flexDirection:'column',gap:8,marginTop:16}},
+              sel.status!=='Paid'?e(Btn,{t:t,onClick:function(){markPaid(sel.id);}},e(Ic,{n:'check',size:13,color:t.bg==='#000000'?'#000':'#fff'}),'Mark as Paid'):null,
+              e(Btn,{t:t,variant:'secondary',onClick:function(){printInvoice(sel);}},e(Ic,{n:'print',size:13,color:t.txt}),'Print / Save PDF'),
+              e(Btn,{t:t,variant:'danger',onClick:function(){deleteInv(sel.id);}},e(Ic,{n:'trash',size:13,color:t.err}),'Delete')
+            )
+          )
         )
-      )
-    ):null
+      : null
   );
 }
 
 /* EXPENSES PAGE */
 function Expenses(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh;
-  var expS=useState(DB.get('expenses'));var exps=expS[0];var setExps=expS[1];
-  var qS=useState('');var q=qS[0];var setQ=qS[1];
-  var catS=useState('All');var cat=catS[0];var setCat=catS[1];
-  var modalS=useState(false);var modal=modalS[0];var setModal=modalS[1];
-  var editS=useState(null);var editEx=editS[0];var setEditEx=editS[1];
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
+  var expS=useState(DB.get('expenses'));
+  var exps=expS[0];
+  var setExps=expS[1];
+  var qS=useState('');
+  var q=qS[0];
+  var setQ=qS[1];
+  var catS=useState('All');
+  var cat=catS[0];
+  var setCat=catS[1];
+  var modalS=useState(false);
+  var modal=modalS[0];
+  var setModal=modalS[1];
+  var editS=useState(null);
+  var editEx=editS[0];
+  var setEditEx=editS[1];
 
   useEffect(function(){setExps(DB.get('expenses'));},[ refresh]);
   function reload(){setExps(DB.get('expenses'));}
 
   var cats=['All','Chemicals','Equipment','Fuel','Marketing','Payroll','Insurance','Software','Office','Supplies','Miscellaneous'];
-  var filtered=exps.filter(function(ex){return (cat==='All'||ex.cat===cat)&&(ex.vendor||'').toLowerCase().indexOf(q.toLowerCase())>=0;}).sort(function(a,b){return new Date(b.date||b.createdAt||0)-new Date(a.date||a.createdAt||0);});
+  var filtered=exps.filter(function(ex){
+    return (cat==='All'||ex.cat===cat)&&(ex.vendor||'').toLowerCase().indexOf(q.toLowerCase())>=0;
+  }).sort(function(a,b){
+    return new Date(b.date||b.createdAt||0)-new Date(a.date||a.createdAt||0);
+  });
   var total=filtered.reduce(function(s,ex){return s+(parseFloat(ex.amount)||0);},0);
-  var bycat={};exps.forEach(function(ex){bycat[ex.cat||'Other']=(bycat[ex.cat||'Other']||0)+(parseFloat(ex.amount)||0);});
-  var expData=Object.keys(bycat).map(function(k){return{name:k,value:bycat[k]};});
+  var bycat={};
+  exps.forEach(function(ex){bycat[ex.cat||'Other']=(bycat[ex.cat||'Other']||0)+(parseFloat(ex.amount)||0);});
+  var expData=Object.keys(bycat).map(function(k){return {name:k,value:bycat[k]};});
 
-  function deleteEx(id){if(confirm('Delete this expense?')){DB.remove('expenses',id);reload();}}
+  function deleteEx(id){
+    if(!confirm('Delete this expense?')){return;}
+    DB.remove('expenses',id);
+    reload();
+  }
 
   return e('div',null,
     modal?e(ExpenseModal,{t:t,onClose:function(){setModal(false);setEditEx(null);},onSave:reload,existing:editEx,mobile:mobile}):null,
     e('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:14,marginBottom:16}},
       e(KpiCard,{t:t,label:'Total (filtered)',value:$$(total),icon:'wallet'}),
-      e(KpiCard,{t:t,label:'Total Transactions',value:filtered.length,icon:'receipt'}),
+      e(KpiCard,{t:t,label:'Transactions',value:filtered.length,icon:'receipt'}),
       e(KpiCard,{t:t,label:'All-time Total',value:$$(exps.reduce(function(s,ex){return s+(parseFloat(ex.amount)||0);},0)),icon:'dollar'})
     ),
     e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'1.5fr 1fr',gap:14}},
       e('div',null,
         e('div',{style:{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap',alignItems:'center'}},
-          e('div',{style:{display:'flex',alignItems:'center',gap:7,background:t.surf2,border:'1px solid '+t.border,borderRadius:9,padding:'7px 10px',flex:1,minWidth:140}},e(Ic,{n:'search',size:14,color:t.txtM}),e('input',{value:q,onChange:function(ev){setQ(ev.target.value);},placeholder:'Search expenses...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,width:'100%',fontFamily:'Inter,sans-serif'}})),
+          e('div',{style:{display:'flex',alignItems:'center',gap:7,background:t.surf2,border:'1px solid '+t.border,borderRadius:9,padding:'7px 10px',flex:1,minWidth:140}},
+            e(Ic,{n:'search',size:14,color:t.txtM}),
+            e('input',{value:q,onChange:function(ev){setQ(ev.target.value);},placeholder:'Search expenses...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,width:'100%',fontFamily:'Inter,sans-serif'}})
+          ),
           e(Btn,{t:t,onClick:function(){setEditEx(null);setModal(true);}},e(Ic,{n:'plus',size:14,color:t.bg==='#000000'?'#000':'#fff'}),'Add Expense')
         ),
-        e('div',{style:{display:'flex',gap:6,overflowX:'auto',marginBottom:12}},cats.map(function(c){return e('button',{key:c,onClick:function(){setCat(c);},style:{fontSize:11,fontWeight:600,padding:'5px 10px',borderRadius:999,cursor:'pointer',border:'1px solid '+(cat===c?t.acc:t.border),background:cat===c?t.accS:'transparent',color:cat===c?t.acc:t.txt2,whiteSpace:'nowrap',flexShrink:0}},c);})),
-        filtered.length===0?e(Empty,{t:t,title:'No expenses',sub:'Click "Add Expense" to track your spending'}):
-        e(Card,{t:t,style:{overflow:'hidden'}},filtered.map(function(ex){
-          return e('div',{key:ex.id,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'13px 18px',borderBottom:'1px solid '+t.border}},
-            e('div',null,e('div',{style:{fontWeight:600,fontSize:13.5,color:t.txt}},ex.vendor),e('div',{style:{fontSize:12,color:t.txt2,marginTop:2}},(ex.cat||'—')+' · '+(ex.method||'—')+' · '+(ex.date||'').slice(0,10))),
-            e('div',{style:{display:'flex',alignItems:'center',gap:10}},
-              e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,fontSize:13.5,color:t.txt}},$$(parseFloat(ex.amount)||0)),
-              e('button',{onClick:function(){setEditEx(ex);setModal(true);},style:{background:'none',border:'none',cursor:'pointer',padding:4}},e(Ic,{n:'edit',size:14,color:t.txtM})),
-              e('button',{onClick:function(){deleteEx(ex.id);},style:{background:'none',border:'none',cursor:'pointer',padding:4}},e(Ic,{n:'trash',size:14,color:t.err}))
+        e('div',{style:{display:'flex',gap:6,overflowX:'auto',marginBottom:12}},
+          cats.map(function(c){
+            return e('button',{
+              key:c,
+              onClick:function(){setCat(c);},
+              style:{fontSize:11,fontWeight:600,padding:'5px 10px',borderRadius:999,cursor:'pointer',border:'1px solid '+(cat===c?t.acc:t.border),background:cat===c?t.accS:'transparent',color:cat===c?t.acc:t.txt2,whiteSpace:'nowrap',flexShrink:0,fontFamily:'Inter,sans-serif'}
+            },c);
+          })
+        ),
+        filtered.length===0
+          ? e(Empty,{t:t,title:'No expenses',sub:'Click "Add Expense" to track your spending'})
+          : e(Card,{t:t,style:{overflow:'hidden'}},
+              filtered.map(function(ex){
+                return e('div',{key:ex.id,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'13px 18px',borderBottom:'1px solid '+t.border}},
+                  e('div',null,
+                    e('div',{style:{fontWeight:600,fontSize:13.5,color:t.txt}},ex.vendor),
+                    e('div',{style:{fontSize:12,color:t.txt2,marginTop:2}},(ex.cat||'--')+' - '+(ex.method||'--')+' - '+(ex.date||'').slice(0,10))
+                  ),
+                  e('div',{style:{display:'flex',alignItems:'center',gap:10}},
+                    e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,fontSize:13.5,color:t.txt}},$$(parseFloat(ex.amount)||0)),
+                    e('button',{onClick:function(){setEditEx(ex);setModal(true);},style:{background:'none',border:'none',cursor:'pointer',padding:4}},e(Ic,{n:'edit',size:14,color:t.txtM})),
+                    e('button',{onClick:function(){deleteEx(ex.id);},style:{background:'none',border:'none',cursor:'pointer',padding:4}},e(Ic,{n:'trash',size:14,color:t.err}))
+                  )
+                );
+              })
             )
-          );
-        }))
       ),
-      e(Card,{t:t},e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Spending by Category'),e('div',{style:{height:260,padding:'8px 12px 14px'}},expData.length?e(DoughnutChart,{data:expData,t:t}):e(Empty,{t:t,title:'No data'})))
+      e(Card,{t:t},
+        e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Spending by Category'),
+        e('div',{style:{height:260,padding:'8px 12px 14px'}},
+          expData.length?e(DoughnutChart,{data:expData,t:t}):e(Empty,{t:t,title:'No data'})
+        )
+      )
     )
   );
 }
 
 /* EMPLOYEES PAGE */
 function Employees(props){
-  var t=props.t,mobile=props.mobile,refresh=props.refresh;
-  var empS=useState(DB.get('employees'));var emps=empS[0];var setEmps=empS[1];
-  var qS=useState('');var q=qS[0];var setQ=qS[1];
-  var modalS=useState(false);var modal=modalS[0];var setModal=modalS[1];
-  var editS=useState(null);var editEmp=editS[0];var setEditEmp=editS[1];
-  var selS=useState(null);var sel=selS[0];var setSel=selS[1];
+  var t=props.t;
+  var mobile=props.mobile;
+  var refresh=props.refresh;
+  var empS=useState(DB.get('employees'));
+  var emps=empS[0];
+  var setEmps=empS[1];
+  var qS=useState('');
+  var q=qS[0];
+  var setQ=qS[1];
+  var modalS=useState(false);
+  var modal=modalS[0];
+  var setModal=modalS[1];
+  var editS=useState(null);
+  var editEmp=editS[0];
+  var setEditEmp=editS[1];
 
   useEffect(function(){setEmps(DB.get('employees'));},[ refresh]);
-  function reload(){setEmps(DB.get('employees'));if(sel){setSel(DB.find('employees',sel.id)||null);}}
-  function deleteEmp(id){if(confirm('Delete this employee?')){DB.remove('employees',id);reload();setSel(null);}}
-
-  function getEmpStats(id){
-    var bks=DB.get('bookings').filter(function(b){return b.emp&&b.empId===id||b.emp===(DB.find('employees',id)||{}).name;});
-    var completed=bks.filter(function(b){return b.status==='Completed';});
-    return{jobs:completed.length,rev:completed.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0)};
+  function reload(){setEmps(DB.get('employees'));}
+  function deleteEmp(id){
+    if(!confirm('Delete this employee?')){return;}
+    DB.remove('employees',id);
+    reload();
   }
-
+  function getEmpStats(id){
+    var emp=DB.find('employees',id);
+    if(!emp){return {jobs:0,rev:0};}
+    var bks=DB.get('bookings').filter(function(b){return b.emp===emp.name&&b.status==='Completed';});
+    return {jobs:bks.length,rev:bks.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0)};
+  }
   var filtered=emps.filter(function(em){return em.name.toLowerCase().indexOf(q.toLowerCase())>=0;});
-
   return e('div',null,
     modal?e(EmployeeModal,{t:t,onClose:function(){setModal(false);setEditEmp(null);},onSave:reload,existing:editEmp,mobile:mobile}):null,
-    e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}},
-      e('div',{style:{display:'flex',alignItems:'center',gap:8,background:t.surf2,border:'1px solid '+t.border,borderRadius:9,padding:'7px 10px',flex:1,maxWidth:280}},e(Ic,{n:'search',size:14,color:t.txtM}),e('input',{value:q,onChange:function(ev){setQ(ev.target.value);},placeholder:'Search employees...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,fontFamily:'Inter,sans-serif',width:'100%'}})),
+    e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,gap:8}},
+      e('div',{style:{display:'flex',alignItems:'center',gap:8,background:t.surf2,border:'1px solid '+t.border,borderRadius:9,padding:'7px 10px',flex:1,maxWidth:280}},
+        e(Ic,{n:'search',size:14,color:t.txtM}),
+        e('input',{value:q,onChange:function(ev){setQ(ev.target.value);},placeholder:'Search employees...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,fontFamily:'Inter,sans-serif',width:'100%'}})
+      ),
       e(Btn,{t:t,onClick:function(){setEditEmp(null);setModal(true);}},e(Ic,{n:'plus',size:14,color:t.bg==='#000000'?'#000':'#fff'}),'Add Employee')
     ),
-    filtered.length===0?e(Empty,{t:t,title:'No employees',sub:'Click "Add Employee" to add your team'}):
-    e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'repeat(auto-fill,minmax(280px,1fr))',gap:14}},
-      filtered.map(function(em){
-        var stats=getEmpStats(em.id);
-        return e(Card,{t:t,key:em.id,style:{padding:20,cursor:'pointer'},onClick:function(){setSel(em);}},
-          e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}},
-            e('div',{style:{display:'flex',alignItems:'center',gap:12}},
-              e('div',{style:{width:42,height:42,borderRadius:'50%',background:t.accS,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:14,color:t.acc}},em.name.split(' ').map(function(n){return n[0];}).join('')),
-              e('div',null,e('div',{style:{fontWeight:600,fontSize:15,color:t.txt}},em.name),e('div',{style:{fontSize:12,color:t.txt2}},em.position||'Detailer'))
-            ),
-            e(Badge,{t:t,k:em.active!==false?'ok':'gray'},em.active!==false?'Active':'Inactive')
-          ),
-          e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}},
-            e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Jobs'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},stats.jobs)),
-            e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Revenue'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},$(stats.rev)))
-          ),
-          e('div',{style:{display:'flex',gap:7}},
-            e('button',{onClick:function(ev){ev.stopPropagation();setEditEmp(em);setModal(true);},style:{flex:1,padding:'7px 0',borderRadius:8,border:'1px solid '+t.border,background:t.surf2,fontSize:12,fontWeight:600,color:t.txt,cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Edit'),
-            e('button',{onClick:function(ev){ev.stopPropagation();deleteEmp(em.id);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.errS,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'trash',size:14,color:t.err}))
-          )
-        );
-      })
-    )
+    filtered.length===0
+      ? e(Empty,{t:t,title:'No employees',sub:'Click "Add Employee" to add your team'})
+      : e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'repeat(auto-fill,minmax(280px,1fr))',gap:14}},
+          filtered.map(function(em){
+            var stats=getEmpStats(em.id);
+            return e(Card,{t:t,key:em.id,style:{padding:20}},
+              e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}},
+                e('div',{style:{display:'flex',alignItems:'center',gap:12}},
+                  e('div',{style:{width:42,height:42,borderRadius:'50%',background:t.accS,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:14,color:t.acc}},
+                    em.name.split(' ').map(function(n){return n[0];}).join('')
+                  ),
+                  e('div',null,
+                    e('div',{style:{fontWeight:600,fontSize:15,color:t.txt}},em.name),
+                    e('div',{style:{fontSize:12,color:t.txt2}},em.position||'Detailer')
+                  )
+                ),
+                e(Badge,{t:t,k:em.active!==false?'ok':'gray'},em.active!==false?'Active':'Inactive')
+              ),
+              e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}},
+                e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Jobs Done'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},stats.jobs)),
+                e('div',{style:{background:t.surf2,borderRadius:10,padding:'10px 12px'}},e('div',{style:{fontSize:11,fontWeight:600,color:t.txtM,textTransform:'uppercase'}},'Revenue'),e('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}},$(stats.rev)))
+              ),
+              e(em.phone?'a':'span',em.phone?{href:'tel:'+em.phone,style:{fontSize:12,color:t.txt2,display:'block',marginBottom:4,textDecoration:'none'}}:{style:{fontSize:12,color:t.txt2,display:'block',marginBottom:4}},em.phone||''),
+              e('div',{style:{display:'flex',gap:7}},
+                e('button',{onClick:function(){setEditEmp(em);setModal(true);},style:{flex:1,padding:'7px 0',borderRadius:8,border:'1px solid '+t.border,background:t.surf2,fontSize:12,fontWeight:600,color:t.txt,cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Edit'),
+                e('button',{onClick:function(){deleteEmp(em.id);},style:{width:32,height:32,borderRadius:8,border:'1px solid '+t.border,background:t.errS,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'trash',size:14,color:t.err}))
+              )
+            );
+          })
+        )
   );
 }
 
 /* ANALYTICS PAGE */
 function Analytics(props){
-  var t=props.t,mobile=props.mobile;
-  var bookings=DB.get('bookings');var expenses=DB.get('expenses');var customers=DB.get('customers');
+  var t=props.t;
+  var mobile=props.mobile;
+  var bookings=DB.get('bookings');
+  var expenses=DB.get('expenses');
+  var customers=DB.get('customers');
   var completed=bookings.filter(function(b){return b.status==='Completed';});
   var totalRev=completed.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0);
   var totalExp=expenses.reduce(function(s,ex){return s+(parseFloat(ex.amount)||0);},0);
-  var svcMap={};completed.forEach(function(b){svcMap[b.service]=(svcMap[b.service]||0)+(parseFloat(b.total)||0);});
-  var topSvcs=Object.keys(svcMap).map(function(k){return{name:k,value:svcMap[k]};}).sort(function(a,b){return b.value-a.value;}).slice(0,5);
-  var custMap={};completed.forEach(function(b){custMap[b.custId]=(custMap[b.custId]||0)+(parseFloat(b.total)||0);});
-  var topCusts=Object.keys(custMap).map(function(id){var c=DB.find('customers',id);return{name:c?c.name:'Unknown',value:custMap[id]};}).sort(function(a,b){return b.value-a.value;}).slice(0,5);
-
-  var trendMap={};bookings.forEach(function(b){var d=parseDate(b.date);if(!d)return;var key=d.getFullYear()+'-'+(d.getMonth()+1);if(!trendMap[key]){trendMap[key]={m:d.toLocaleDateString('en-US',{month:'short'}),rev:0,profit:0,key:d.getTime()};}trendMap[key].rev+=parseFloat(b.total)||0;});
-  expenses.forEach(function(ex){var d=ex.date?new Date(ex.date):null;if(!d)return;var key=d.getFullYear()+'-'+(d.getMonth()+1);if(trendMap[key])trendMap[key].profit+=-(parseFloat(ex.amount)||0);});
+  var svcMap={};
+  completed.forEach(function(b){svcMap[b.service]=(svcMap[b.service]||0)+(parseFloat(b.total)||0);});
+  var topSvcs=Object.keys(svcMap).map(function(k){return {name:k,value:svcMap[k]};}).sort(function(a,b){return b.value-a.value;}).slice(0,5);
+  var custMap={};
+  completed.forEach(function(b){custMap[b.custId]=(custMap[b.custId]||0)+(parseFloat(b.total)||0);});
+  var topCusts=Object.keys(custMap).map(function(id){
+    var c=DB.find('customers',id);
+    return {name:c?c.name:'Unknown',value:custMap[id]};
+  }).sort(function(a,b){return b.value-a.value;}).slice(0,5);
+  var trendMap={};
+  bookings.forEach(function(b){
+    var d=parseDate(b.date);
+    if(!d){return;}
+    var key=d.getFullYear()+'-'+(d.getMonth()+1);
+    if(!trendMap[key]){trendMap[key]={m:d.toLocaleDateString('en-US',{month:'short'}),rev:0,profit:0,key:d.getTime()};}
+    trendMap[key].rev+=parseFloat(b.total)||0;
+  });
+  expenses.forEach(function(ex){
+    var d=ex.date?new Date(ex.date):null;
+    if(!d){return;}
+    var key=d.getFullYear()+'-'+(d.getMonth()+1);
+    if(trendMap[key]){trendMap[key].profit-=(parseFloat(ex.amount)||0);}
+  });
   var trend=Object.values(trendMap).sort(function(a,b){return a.key-b.key;}).slice(-6);
   trend.forEach(function(m){m.profit=m.rev+m.profit;});
-
   return e('div',{style:{display:'flex',flexDirection:'column',gap:14}},
     e('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:14}},
       e(KpiCard,{t:t,label:'Total Revenue',value:$$(totalRev),icon:'dollar'}),
@@ -733,84 +1456,167 @@ function Analytics(props){
       e(KpiCard,{t:t,label:'Avg Ticket',value:completed.length?$$(totalRev/completed.length):'$0',icon:'star'}),
       e(KpiCard,{t:t,label:'Total Customers',value:customers.length,icon:'users'})
     ),
-    trend.length>0?e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'1fr 1fr',gap:14}},
-      e(Card,{t:t},e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Revenue vs Profit'),e('div',{style:{height:240,padding:'8px 12px 14px'}},e(LineChart,{data:trend,t:t}))),
-      topSvcs.length>0?e(Card,{t:t},e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Top Services by Revenue'),e('div',{style:{padding:'14px 18px'}},topSvcs.map(function(s){return e('div',{key:s.name,style:{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid '+t.border,fontSize:13}},e('span',{style:{color:t.txt}},s.name),e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,color:t.txt}},$$(s.value)));}))  ):null
-    ):e(Empty,{t:t,title:'No data yet',sub:'Add bookings and expenses to see analytics'}),
-    topCusts.length>0?e(Card,{t:t,style:{padding:18}},e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:12}},'Top Customers by Revenue'),topCusts.map(function(c){return e('div',{key:c.name,style:{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid '+t.border,fontSize:13}},e('span',{style:{color:t.txt}},c.name),e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,color:t.txt}},$$(c.value)));})):null
+    trend.length>0
+      ? e('div',{style:{display:'grid',gridTemplateColumns:mobile?'1fr':'1fr 1fr',gap:14}},
+          e(Card,{t:t},
+            e('div',{style:{padding:'14px 18px 0',fontWeight:600,fontSize:14,color:t.txt}},'Revenue vs Profit'),
+            e('div',{style:{height:240,padding:'8px 12px 14px'}},e(LineChart,{data:trend,t:t}))
+          ),
+          topSvcs.length>0
+            ? e(Card,{t:t,style:{padding:18}},
+                e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:12}},'Top Services by Revenue'),
+                topSvcs.map(function(s){
+                  return e('div',{key:s.name,style:{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid '+t.border,fontSize:13}},
+                    e('span',{style:{color:t.txt}},s.name),
+                    e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,color:t.txt}},$$(s.value))
+                  );
+                })
+              )
+            : null
+        )
+      : e(Empty,{t:t,title:'No data yet',sub:'Add bookings and expenses to see analytics'}),
+    topCusts.length>0
+      ? e(Card,{t:t,style:{padding:18}},
+          e('div',{style:{fontWeight:600,fontSize:14,color:t.txt,marginBottom:12}},'Top Customers by Revenue'),
+          topCusts.map(function(c){
+            return e('div',{key:c.name,style:{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid '+t.border,fontSize:13}},
+              e('span',{style:{color:t.txt}},c.name),
+              e('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,color:t.txt}},$$(c.value))
+            );
+          })
+        )
+      : null
   );
 }
 
 /* NOTIFICATIONS PAGE */
 function Notifications(props){
   var t=props.t;
-  var bookings=DB.get('bookings');var today=new Date();
+  var bookings=DB.get('bookings');
+  var today=new Date();
   var notifs=[];
   var unpaid=bookings.filter(function(b){return b.pay!=='Paid'&&b.status!=='Cancelled'&&b.status!=='No Show';});
-  if(unpaid.length>0)notifs.push({type:'err',icon:'receipt',text:unpaid.length+' unpaid booking'+(unpaid.length!==1?'s':'')+' totaling '+$$(unpaid.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0))+' outstanding.'});
+  if(unpaid.length>0){
+    notifs.push({type:'err',icon:'receipt',text:unpaid.length+' unpaid booking'+(unpaid.length!==1?'s':'')+' totaling '+$$(unpaid.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0))+' outstanding.'});
+  }
   var todayBks=bookings.filter(function(b){var d=parseDate(b.date);return d&&sameDay(d,today);});
-  if(todayBks.length>0)notifs.push({type:'acc',icon:'calendar',text:todayBks.length+' job'+(todayBks.length!==1?'s':'')+' scheduled for today.'});
+  if(todayBks.length>0){notifs.push({type:'acc',icon:'calendar',text:todayBks.length+' job'+(todayBks.length!==1?'s':'')+' scheduled for today.'});}
   var upcoming=bookings.filter(function(b){var d=parseDate(b.date);return d&&d>today&&(d-today)<3*24*60*60*1000;});
-  if(upcoming.length>0)notifs.push({type:'gold',icon:'clock',text:upcoming.length+' job'+(upcoming.length!==1?'s':'')+' coming up in the next 3 days.'});
-  if(notifs.length===0)notifs.push({type:'gray',icon:'check',text:'All clear! No urgent notifications.'});
-  return e('div',{style:{display:'flex',flexDirection:'column',gap:10,maxWidth:600}},notifs.map(function(n,i){var c=sc(t,n.type);return e(Card,{t:t,key:i,style:{padding:'14px 18px',display:'flex',alignItems:'center',gap:14}},e('div',{style:{width:36,height:36,borderRadius:9,background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},e(Ic,{n:n.icon,size:16,color:c.fg})),e('div',{style:{fontSize:13.5,color:t.txt}},n.text));}));
+  if(upcoming.length>0){notifs.push({type:'gold',icon:'clock',text:upcoming.length+' job'+(upcoming.length!==1?'s':'')+' coming up in the next 3 days.'});}
+  if(notifs.length===0){notifs.push({type:'gray',icon:'check',text:'All clear! No urgent notifications.'});}
+  return e('div',{style:{display:'flex',flexDirection:'column',gap:10,maxWidth:600}},
+    notifs.map(function(n,i){
+      var c=sc(t,n.type);
+      return e(Card,{t:t,key:i,style:{padding:'14px 18px',display:'flex',alignItems:'center',gap:14}},
+        e('div',{style:{width:36,height:36,borderRadius:9,background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},
+          e(Ic,{n:n.icon,size:16,color:c.fg})
+        ),
+        e('div',{style:{fontSize:13.5,color:t.txt}},n.text)
+      );
+    })
+  );
 }
 
 /* SETTINGS PAGE */
 function Settings(props){
   var t=props.t;
-  var fields=[['Business name','Bay Area Auto Care'],['Phone','415-717-9895'],['Email','bayareaautocare.info@gmail.com'],['Service Area','San Francisco, South SF, Daly City'],['Hours','Mon–Sat, 9am–3pm'],['Default Tax Rate','8.5%']];
+  var fields=[
+    ['Business name','Bay Area Auto Care'],
+    ['Phone','415-717-9895'],
+    ['Email','bayareaautocare.info@gmail.com'],
+    ['Service Area','San Francisco, South SF, Daly City'],
+    ['Hours','Mon-Sat, 9am-3pm'],
+    ['Default Tax Rate','8.5%']
+  ];
   return e(Card,{t:t,style:{padding:22,maxWidth:520}},
     e('div',{style:{fontWeight:600,fontSize:15,color:t.txt,marginBottom:4}},'Business Information'),
-    e('div',{style:{fontSize:13,color:t.txt2,marginBottom:18}},'Your business details. Update as needed.'),
-    fields.map(function(pair){return e('div',{key:pair[0],style:{marginBottom:14}},e('div',{style:{fontSize:12,fontWeight:600,color:t.txtM,marginBottom:6}},pair[0]),e('div',{style:{padding:'9px 13px',borderRadius:9,border:'1px solid '+t.border,background:t.surf2,fontSize:13.5,color:t.txt}},pair[1]));})
+    e('div',{style:{fontSize:13,color:t.txt2,marginBottom:18}},'Your business details.'),
+    fields.map(function(pair){
+      return e('div',{key:pair[0],style:{marginBottom:14}},
+        e('div',{style:{fontSize:12,fontWeight:600,color:t.txtM,marginBottom:6}},pair[0]),
+        e('div',{style:{padding:'9px 13px',borderRadius:9,border:'1px solid '+t.border,background:t.surf2,fontSize:13.5,color:t.txt}},pair[1])
+      );
+    })
   );
 }
 
-/* ═══════════════════════════════════
-   PASSWORD GATE
-═══════════════════════════════════ */
+/* PASSWORD GATE */
 function PasswordGate(props){
-  var s=useState(!!sessionStorage.getItem('baac_auth'));var ok=s[0];var setOk=s[1];
-  var is=useState('');var input=is[0];var setInput=is[1];
-  var es=useState(false);var err=es[0];var setErr=es[1];
-  var ss=useState(false);var show=ss[0];var setShow=ss[1];
-  if(ok)return props.children;
-  function attempt(){if(input===PASSWORD){sessionStorage.setItem('baac_auth','1');setOk(true);}else{setErr(true);setInput('');}}
+  var authd=!!sessionStorage.getItem('baac_auth');
+  var okS=useState(authd);
+  var ok=okS[0];
+  var setOk=okS[1];
+  var inpS=useState('');
+  var input=inpS[0];
+  var setInput=inpS[1];
+  var errS=useState(false);
+  var err=errS[0];
+  var setErr=errS[1];
+  var showS=useState(false);
+  var show=showS[0];
+  var setShow=showS[1];
+  if(ok){return props.children;}
+  function attempt(){
+    if(input===PASSWORD){sessionStorage.setItem('baac_auth','1');setOk(true);}
+    else{setErr(true);setInput('');}
+  }
   return e('div',{style:{minHeight:'100vh',background:'#000',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Inter,sans-serif'}},
     e('div',{style:{background:'#111',border:'1px solid #2A2A2A',borderRadius:16,padding:'44px 36px',width:340,maxWidth:'92vw',display:'flex',flexDirection:'column',alignItems:'center'}},
-      e('div',{style:{width:52,height:52,borderRadius:12,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:20}},e('svg',{width:26,height:26,viewBox:'0 0 24 24',fill:'none',stroke:'#000',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},e('path',{d:'M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v5h-2M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'}))),
+      e('div',{style:{width:52,height:52,borderRadius:12,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:20}},
+        e('svg',{width:26,height:26,viewBox:'0 0 24 24',fill:'none',stroke:'#000',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},
+          e('path',{d:'M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v5h-2M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'})
+        )
+      ),
       e('div',{style:{fontSize:20,fontWeight:700,color:'#fff',marginBottom:5,textAlign:'center'}},'Bay Area Auto Care'),
       e('div',{style:{fontSize:13,color:'#666',marginBottom:26,textAlign:'center'}},'Business Management Portal'),
       e('div',{style:{width:'100%',marginBottom:10}},
         e('div',{style:{fontSize:11,fontWeight:600,color:'#888',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.5px'}},'Password'),
         e('div',{style:{position:'relative'}},
-          e('input',{type:show?'text':'password',value:input,placeholder:'Enter password',autoFocus:true,onChange:function(ev){setInput(ev.target.value);setErr(false);},onKeyDown:function(ev){if(ev.key==='Enter')attempt();},style:{width:'100%',padding:'11px 40px 11px 13px',background:'#1A1A1A',border:'1px solid '+(err?'#FF4444':'#333'),borderRadius:9,fontSize:14,color:'#fff',outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box'}}),
-          e('button',{onClick:function(){setShow(!show);},style:{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#666',padding:0,lineHeight:0}},e('svg',{width:16,height:16,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2,strokeLinecap:'round'},show?e('path',{d:'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22'}):e('path',{d:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'})))
+          e('input',{
+            type:show?'text':'password',
+            value:input,
+            placeholder:'Enter password',
+            autoFocus:true,
+            onChange:function(ev){setInput(ev.target.value);setErr(false);},
+            onKeyDown:function(ev){if(ev.key==='Enter'){attempt();}},
+            style:{width:'100%',padding:'11px 40px 11px 13px',background:'#1A1A1A',border:'1px solid '+(err?'#FF4444':'#333'),borderRadius:9,fontSize:14,color:'#fff',outline:'none',fontFamily:'Inter,sans-serif',boxSizing:'border-box'}
+          }),
+          e('button',{
+            onClick:function(){setShow(!show);},
+            style:{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#666',padding:0,lineHeight:0}
+          },
+            e('svg',{width:16,height:16,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2,strokeLinecap:'round'},
+              show
+                ? e('path',{d:'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22'})
+                : e('path',{d:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'})
+            )
+          )
         ),
         err?e('div',{style:{fontSize:12,color:'#FF4444',marginTop:6}},'Incorrect password. Try again.'):null
       ),
-      e('button',{onClick:attempt,style:{width:'100%',padding:'11px 0',background:'#fff',color:'#000',border:'none',borderRadius:9,fontSize:14,fontWeight:700,cursor:'pointer',marginBottom:14,fontFamily:'Inter,sans-serif'}},'Unlock Dashboard'),
+      e('button',{
+        onClick:attempt,
+        style:{width:'100%',padding:'11px 0',background:'#fff',color:'#000',border:'none',borderRadius:9,fontSize:14,fontWeight:700,cursor:'pointer',marginBottom:14,fontFamily:'Inter,sans-serif'}
+      },'Unlock Dashboard'),
       e('div',{style:{fontSize:11,color:'#444'}},'Authorized personnel only')
     )
   );
 }
 
-/* ═══════════════════════════════════
-   MOBILE HOOK
-═══════════════════════════════════ */
+/* MOBILE HOOK */
 function useIsMobile(){
-  var s=useState(window.innerWidth<=768);var mobile=s[0];var setMobile=s[1];
-  useEffect(function(){var fn=function(){setMobile(window.innerWidth<=768);};window.addEventListener('resize',fn);return function(){window.removeEventListener('resize',fn);};},[ ]);
+  var s=useState(window.innerWidth<=768);
+  var mobile=s[0];
+  var setMobile=s[1];
+  useEffect(function(){
+    function fn(){setMobile(window.innerWidth<=768);}
+    window.addEventListener('resize',fn);
+    return function(){window.removeEventListener('resize',fn);};
+  },[]);
   return mobile;
 }
 
-/* helper used in Invoices drawer */
-function Divider(props){return e('div',{style:{borderTop:'1px solid '+props.t.border,margin:'12px 0'}});}
-
-/* ═══════════════════════════════════
-   NAV + APP SHELL
-═══════════════════════════════════ */
+/* NAV */
 var NAV=[
   {id:'dashboard',label:'Dashboard',icon:'dashboard'},
   {id:'bookings',label:'Bookings',icon:'calendar'},
@@ -821,10 +1627,11 @@ var NAV=[
   {id:'employees',label:'Employees',icon:'users'},
   {id:'analytics',label:'Analytics',icon:'bars'},
   {id:'notifications',label:'Notifications',icon:'bell'},
-  {id:'settings',label:'Settings',icon:'settings'},
+  {id:'settings',label:'Settings',icon:'settings'}
 ];
 var VIEWS={dashboard:Dashboard,bookings:Bookings,customers:Customers,calendar:CalendarView,invoices:Invoices,expenses:Expenses,employees:Employees,analytics:Analytics,notifications:Notifications,settings:Settings};
 
+/* APP SHELL */
 function App(){
   var ds=useState(false);var dark=ds[0];var setDark=ds[1];
   var vs=useState('dashboard');var view=vs[0];var setView=vs[1];
@@ -840,31 +1647,87 @@ function App(){
   function SidebarLinks(){
     return e('div',{style:{display:'flex',flexDirection:'column',gap:3,height:'100%'}},
       e('div',{style:{display:'flex',alignItems:'center',gap:9,padding:'0 8px',marginBottom:22}},
-        e('div',{style:{width:26,height:26,borderRadius:7,background:t.acc,display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:'sparkle',size:13,color:dark?'#000':'#fff'})),
+        e('div',{style:{width:26,height:26,borderRadius:7,background:t.acc,display:'flex',alignItems:'center',justifyContent:'center'}},
+          e(Ic,{n:'sparkle',size:13,color:dark?'#000':'#fff'})
+        ),
         e('span',{style:{fontFamily:"'Space Grotesk',sans-serif",fontSize:13,fontWeight:700,color:'#fff',lineHeight:1.2}},'Bay Area Auto Care')
       ),
-      NAV.map(function(n){var active=view===n.id;return e('button',{key:n.id,onClick:function(){navTo(n.id);},style:{display:'flex',alignItems:'center',gap:9,padding:'9px 11px',borderRadius:8,border:'none',cursor:'pointer',background:active?'rgba(255,255,255,0.1)':'transparent',color:active?'#fff':t.sideTxt,fontSize:13.5,fontWeight:500,textAlign:'left',width:'100%',fontFamily:'Inter,sans-serif'}},e(Ic,{n:n.icon,size:15,color:active?'#fff':t.sideTxt}),n.label);}),
+      NAV.map(function(n){
+        var active=view===n.id;
+        return e('button',{
+          key:n.id,
+          onClick:function(){navTo(n.id);},
+          style:{display:'flex',alignItems:'center',gap:9,padding:'9px 11px',borderRadius:8,border:'none',cursor:'pointer',background:active?'rgba(255,255,255,0.1)':'transparent',color:active?'#fff':t.sideTxt,fontSize:13.5,fontWeight:500,textAlign:'left',width:'100%',fontFamily:'Inter,sans-serif'}
+        },
+          e(Ic,{n:n.icon,size:15,color:active?'#fff':t.sideTxt}),
+          n.label
+        );
+      }),
       e('div',{style:{marginTop:'auto',padding:'10px 11px',borderTop:'1px solid rgba(255,255,255,0.08)',display:'flex',alignItems:'center',gap:9}},
         e('div',{style:{width:28,height:28,borderRadius:'50%',background:'#555',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff'}},'DP'),
-        e('div',null,e('div',{style:{fontSize:12.5,fontWeight:600,color:'#fff'}},'Darsh Patel'),e('div',{style:{fontSize:11,color:t.sideTxt}},'Owner'))
+        e('div',null,
+          e('div',{style:{fontSize:12.5,fontWeight:600,color:'#fff'}},'Darsh Patel'),
+          e('div',{style:{fontSize:11,color:t.sideTxt}},'Owner')
+        )
       )
     );
   }
 
   return e('div',{style:{display:'flex',minHeight:'100vh',background:t.bg}},
     bookingModal?e(BookingModal,{t:t,onClose:function(){setBookingModal(false);},onSave:function(){reload();},mobile:mobile}):null,
-    !mobile?e('div',{style:{width:210,background:t.side,padding:'18px 12px',flexShrink:0,position:'sticky',top:0,height:'100vh',overflowY:'auto',display:'flex',flexDirection:'column'}},e(SidebarLinks,null)):null,
-    mobile&&menuOpen?e('div',{style:{position:'fixed',inset:0,zIndex:200,display:'flex'},onClick:function(){setMenuOpen(false);}},e('div',{style:{position:'absolute',inset:0,background:'rgba(0,0,0,0.6)'}}),e('div',{style:{position:'relative',width:240,background:t.side,height:'100%',overflowY:'auto',padding:'18px 12px',display:'flex',flexDirection:'column',zIndex:1},onClick:function(ev){ev.stopPropagation();}},e('div',{style:{display:'flex',justifyContent:'flex-end',marginBottom:8}},e('button',{onClick:function(){setMenuOpen(false);},style:{background:'none',border:'none',cursor:'pointer',padding:4}},e(Ic,{n:'x',size:20,color:'#888'}))),e(SidebarLinks,null))):null,
+    !mobile
+      ? e('div',{style:{width:210,background:t.side,padding:'18px 12px',flexShrink:0,position:'sticky',top:0,height:'100vh',overflowY:'auto',display:'flex',flexDirection:'column'}},
+          e(SidebarLinks,null)
+        )
+      : null,
+    mobile&&menuOpen
+      ? e('div',{style:{position:'fixed',inset:0,zIndex:200,display:'flex'},onClick:function(){setMenuOpen(false);}},
+          e('div',{style:{position:'absolute',inset:0,background:'rgba(0,0,0,0.6)'}}),
+          e('div',{style:{position:'relative',width:240,background:t.side,height:'100%',overflowY:'auto',padding:'18px 12px',display:'flex',flexDirection:'column',zIndex:1},onClick:function(ev){ev.stopPropagation();}},
+            e('div',{style:{display:'flex',justifyContent:'flex-end',marginBottom:8}},
+              e('button',{onClick:function(){setMenuOpen(false);},style:{background:'none',border:'none',cursor:'pointer',padding:4}},
+                e(Ic,{n:'x',size:20,color:'#888'})
+              )
+            ),
+            e(SidebarLinks,null)
+          )
+        )
+      : null,
     e('div',{style:{flex:1,display:'flex',flexDirection:'column',minWidth:0,overflow:'hidden'}},
       e('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:mobile?'12px 14px':'14px 24px',borderBottom:'1px solid '+t.border,background:t.surf,position:'sticky',top:0,zIndex:10}},
         e('div',{style:{display:'flex',alignItems:'center',gap:10}},
-          mobile?e('button',{onClick:function(){setMenuOpen(true);},style:{width:34,height:34,borderRadius:9,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},e('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:t.txt2,strokeWidth:2,strokeLinecap:'round'},e('path',{d:'M3 6h18M3 12h18M3 18h18'}))):null,
-          e('span',{style:{fontFamily:"'Space Grotesk',sans-serif",fontSize:mobile?15:18,fontWeight:600,color:t.txt}},(NAV.find(function(n){return n.id===view;})||{}).label)
+          mobile
+            ? e('button',{
+                onClick:function(){setMenuOpen(true);},
+                style:{width:34,height:34,borderRadius:9,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}
+              },
+                e('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:t.txt2,strokeWidth:2,strokeLinecap:'round'},
+                  e('path',{d:'M3 6h18M3 12h18M3 18h18'})
+                )
+              )
+            : null,
+          e('span',{style:{fontFamily:"'Space Grotesk',sans-serif",fontSize:mobile?15:18,fontWeight:600,color:t.txt}},
+            (NAV.find(function(n){return n.id===view;})||{}).label
+          )
         ),
         e('div',{style:{display:'flex',alignItems:'center',gap:7,flexShrink:0}},
-          !mobile?e('div',{style:{display:'flex',alignItems:'center',gap:7,background:t.surf2,border:'1px solid '+t.border,borderRadius:9,padding:'7px 11px',width:180}},e(Ic,{n:'search',size:13,color:t.txtM}),e('input',{placeholder:'Search...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,width:'100%',fontFamily:'Inter,sans-serif'}})):null,
-          e('button',{onClick:function(){setDark(!dark);},style:{width:34,height:34,borderRadius:9,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},e(Ic,{n:dark?'sun':'moon',size:15,color:t.txt2})),
-          e('button',{onClick:function(){setBookingModal(true);},style:{display:'flex',alignItems:'center',gap:5,background:t.acc,color:dark?'#000':'#fff',border:'none',borderRadius:9,padding:mobile?'8px 10px':'8px 14px',fontSize:mobile?12:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'Inter,sans-serif'}},e(Ic,{n:'plus',size:13,color:dark?'#000':'#fff'}),mobile?'New':'New Booking')
+          !mobile
+            ? e('div',{style:{display:'flex',alignItems:'center',gap:7,background:t.surf2,border:'1px solid '+t.border,borderRadius:9,padding:'7px 11px',width:180}},
+                e(Ic,{n:'search',size:13,color:t.txtM}),
+                e('input',{placeholder:'Search...',style:{border:'none',outline:'none',background:'transparent',fontSize:13,color:t.txt,width:'100%',fontFamily:'Inter,sans-serif'}})
+              )
+            : null,
+          e('button',{
+            onClick:function(){setDark(!dark);},
+            style:{width:34,height:34,borderRadius:9,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}
+          },e(Ic,{n:dark?'sun':'moon',size:15,color:t.txt2})),
+          e('button',{
+            onClick:function(){setBookingModal(true);},
+            style:{display:'flex',alignItems:'center',gap:5,background:t.acc,color:dark?'#000':'#fff',border:'none',borderRadius:9,padding:mobile?'8px 10px':'8px 14px',fontSize:mobile?12:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'Inter,sans-serif'}
+          },
+            e(Ic,{n:'plus',size:13,color:dark?'#000':'#fff'}),
+            mobile?'New':'New Booking'
+          )
         )
       ),
       e('div',{style:{padding:mobile?12:24,overflowY:'auto',overflowX:'hidden',flex:1}},
@@ -874,7 +1737,10 @@ function App(){
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(e(PasswordGate,null,e(App,null)));
+ReactDOM.createRoot(document.getElementById('root')).render(
+  e(PasswordGate,null,e(App,null))
+);
+
 })();
 
 </script>
