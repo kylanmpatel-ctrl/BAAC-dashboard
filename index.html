@@ -1,1059 +1,834 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Coastline Mobile Detailing</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Business management platform for Coastline Mobile Detailing." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Bay Area Auto Care</title>
+<meta name="description" content="Business management dashboard for Bay Area Auto Care."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
 <style>
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; min-height: 100%; }
-body { -webkit-font-smoothing: antialiased; }
-#root { min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;background:#000;}
+button,input{font-family:Inter,sans-serif;}
+input::placeholder{opacity:0.4;color:#888;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px;}
 </style>
 </head>
 <body>
 <div id="root"></div>
-
-<!-- React -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<!-- Recharts (depends on React + D3 submodules, UMD bundle includes them) -->
-<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
-<!-- Lucide icons UMD -->
-<script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.js"></script>
-<!-- Babel standalone for JSX transpilation -->
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 <script type="text/babel">
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect, useRef, useMemo } = React;
 
-// Lucide icons
-const { 
-  LayoutDashboard, CalendarDays, Users, Settings, Search, Moon, Sun,
-  Plus, X, Phone, Mail, MapPin, Car, DollarSign, TrendingUp, TrendingDown,
-  Clock, CheckCircle2, AlertCircle, Star, ChevronLeft, ChevronRight,
-  Sparkles, Wallet, Receipt, Percent, Send, Edit3, MoreHorizontal,
-  FileText, Package, Bell, BarChart3, Download, AlertTriangle, Award
-} = lucide;
+const CORRECT_PASSWORD = "BayAreaAutoCare2026$";
 
-// Recharts components
-const {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} = Recharts;
+function PasswordGate({children}) {
+  const [input, setInput] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [error, setError] = useState(false);
+  const [show, setShow] = useState(false);
 
-/* ---------------------------------- THEME ---------------------------------- */
+  if (unlocked) return children;
 
-const THEME = {
+  function attempt() {
+    if (input === CORRECT_PASSWORD) {
+      setUnlocked(true);
+      setError(false);
+    } else {
+      setError(true);
+      setInput("");
+    }
+  }
+
+  function onKey(e) {
+    if (e.key === "Enter") attempt();
+  }
+
+  return (
+    <div style={{
+      minHeight:"100vh", background:"#000000",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      fontFamily:"Inter, sans-serif",
+    }}>
+      <div style={{
+        background:"#111111", border:"1px solid #2A2A2A",
+        borderRadius:16, padding:"44px 40px", width:380, maxWidth:"90vw",
+        display:"flex", flexDirection:"column", alignItems:"center", gap:0,
+      }}>
+        {/* Logo mark */}
+        <div style={{
+          width:56, height:56, borderRadius:14, background:"#FFFFFF",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          marginBottom:22,
+        }}>
+          <svg width={28} height={28} viewBox="0 0 24 24" fill="none"
+            stroke="#000000" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v5h-2M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+          </svg>
+        </div>
+
+        <div style={{fontSize:22, fontWeight:700, color:"#FFFFFF", marginBottom:6, letterSpacing:"-0.3px"}}>
+          Bay Area Auto Care
+        </div>
+        <div style={{fontSize:13.5, color:"#666666", marginBottom:32}}>
+          Business Management Portal
+        </div>
+
+        <div style={{width:"100%", marginBottom:12}}>
+          <div style={{fontSize:12, fontWeight:600, color:"#888888", marginBottom:8, textTransform:"uppercase", letterSpacing:0.5}}>
+            Password
+          </div>
+          <div style={{position:"relative"}}>
+            <input
+              type={show ? "text" : "password"}
+              value={input}
+              onChange={e=>{setInput(e.target.value);setError(false);}}
+              onKeyDown={onKey}
+              placeholder="Enter password"
+              autoFocus
+              style={{
+                width:"100%", padding:"11px 44px 11px 14px",
+                background:"#1A1A1A", border:`1px solid ${error?"#FF4444":"#333333"}`,
+                borderRadius:9, fontSize:14, color:"#FFFFFF",
+                outline:"none", fontFamily:"Inter, sans-serif",
+              }}
+            />
+            <button
+              onClick={()=>setShow(!show)}
+              style={{
+                position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                background:"none", border:"none", cursor:"pointer", padding:0,
+                color:"#666666",
+              }}>
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                {show
+                  ? <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
+                  : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
+                }
+              </svg>
+            </button>
+          </div>
+          {error && (
+            <div style={{fontSize:12, color:"#FF4444", marginTop:7, fontWeight:500}}>
+              Incorrect password. Please try again.
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={attempt}
+          style={{
+            width:"100%", padding:"12px 0", background:"#FFFFFF",
+            color:"#000000", border:"none", borderRadius:9,
+            fontSize:14, fontWeight:700, cursor:"pointer", marginBottom:0,
+          }}>
+          Unlock Dashboard
+        </button>
+
+        <div style={{fontSize:11.5, color:"#444444", marginTop:20}}>
+          Authorized personnel only
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ── THEME ────────────────────────────────────────────────────── */
+const T = {
   light: {
-    bg: "#F5F6F4", surface: "#FFFFFF", surface2: "#FAFAF8", border: "#E4E5E0",
-    textPrimary: "#12151A", textSecondary: "#5B5F66", textMuted: "#9A9DA3",
-    sidebarBg: "#12151A", sidebarText: "#B8BCC4", sidebarActive: "#FFFFFF",
-    accent: "#3457D5", accentSoft: "#E9EEFC", gold: "#C9932E", goldSoft: "#FBF1DD",
-    success: "#1D9E75", successSoft: "#E1F5EE", danger: "#D85A30", dangerSoft: "#FAECE7",
-    shadow: "0 1px 2px rgba(18,21,26,0.04), 0 1px 8px rgba(18,21,26,0.04)",
+    bg:"#F2F2F2",surf:"#FFFFFF",surf2:"#F7F7F7",border:"#E0E0E0",
+    txt:"#0A0A0A",txt2:"#444444",txtM:"#888888",
+    side:"#0A0A0A",sideTxt:"#888888",
+    acc:"#0A0A0A",accS:"#EEEEEE",
+    gold:"#333333",goldS:"#E8E8E8",
+    ok:"#222222",okS:"#E8E8E8",
+    err:"#111111",errS:"#E0E0E0",
   },
-  dark: {
-    bg: "#0C0E12", surface: "#151920", surface2: "#191E26", border: "#262C36",
-    textPrimary: "#F2F4F7", textSecondary: "#9BA1AC", textMuted: "#6B7280",
-    sidebarBg: "#0A0C10", sidebarText: "#8A8F99", sidebarActive: "#FFFFFF",
-    accent: "#5B7FEF", accentSoft: "#1B2542", gold: "#E0AC4C", goldSoft: "#332816",
-    success: "#3FBF93", successSoft: "#123A2E", danger: "#E2755A", dangerSoft: "#3A2016",
-    shadow: "0 1px 2px rgba(0,0,0,0.3), 0 1px 8px rgba(0,0,0,0.3)",
-  },
+  dark:{
+    bg:"#000000",surf:"#111111",surf2:"#1A1A1A",border:"#2A2A2A",
+    txt:"#FFFFFF",txt2:"#AAAAAA",txtM:"#666666",
+    side:"#000000",sideTxt:"#666666",
+    acc:"#FFFFFF",accS:"#1F1F1F",
+    gold:"#CCCCCC",goldS:"#1A1A1A",
+    ok:"#DDDDDD",okS:"#1A1A1A",
+    err:"#AAAAAA",errS:"#1A1A1A",
+  }
 };
 
-const FONTS_LINK_ID = "adp-fonts";
-function useFonts() {
-  useEffect(() => {
-    if (document.getElementById(FONTS_LINK_ID)) return;
-    const link = document.createElement("link");
-    link.id = FONTS_LINK_ID;
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap";
-    document.head.appendChild(link);
-  }, []);
-}
-
-/* ---------------------------------- MOCK DATA ---------------------------------- */
-
-const SERVICES = [
-  { id: "s1", name: "Exterior Wash", price: 45, mins: 45 },
-  { id: "s2", name: "Interior Detail", price: 120, mins: 90 },
-  { id: "s3", name: "Full Detail", price: 220, mins: 180 },
-  { id: "s4", name: "Ceramic Coating", price: 650, mins: 300 },
-  { id: "s5", name: "Paint Correction", price: 380, mins: 240 },
-  { id: "s6", name: "Engine Bay Cleaning", price: 65, mins: 40 },
-];
-
-const STATUS_META = {
-  "New Lead": { color: "gray" }, "Quote Sent": { color: "gray" },
-  "Awaiting Deposit": { color: "gold" }, "Confirmed": { color: "accent" },
-  "Scheduled": { color: "accent" }, "On The Way": { color: "gold" },
-  "In Progress": { color: "gold" }, "Completed": { color: "success" },
-  "Cancelled": { color: "danger" }, "No Show": { color: "danger" },
+/* ── ICONS (inline SVG) ────────────────────────────────────────── */
+const PATHS = {
+  dashboard:"M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
+  calendar:"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
+  users:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  settings:"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  search:"m21 21-6-6M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z",
+  moon:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z",
+  sun:"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z",
+  plus:"M12 5v14M5 12h14",
+  x:"M18 6 6 18M6 6l12 12",
+  phone:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.06 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z",
+  mail:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6",
+  pin:"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0zM12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  car:"M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h11l5 5v5h-2M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
+  dollar:"M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+  up:"M22 7 13.5 15.5 8.5 10.5 2 17M22 7h-5M22 7v5",
+  down:"M22 17 13.5 8.5 8.5 13.5 2 7M22 17h-5M22 17v-5",
+  clock:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 6v6l4 2",
+  check:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM9 12l2 2 4-4",
+  alert:"M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 8v4M12 16h.01",
+  star:"M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  chevL:"M15 18l-6-6 6-6",
+  chevR:"M9 18l6-6-6-6",
+  sparkle:"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z",
+  wallet:"M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4z",
+  receipt:"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8H8M16 12H8M12 16H8",
+  file:"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  box:"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12",
+  bell:"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0",
+  bars:"M3 3v18h18M18 17V9M13 17V5M8 17v-3",
+  download:"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  warn:"M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01",
+  award:"M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM8.21 13.89 7 23l5-3 5 3-1.21-9.12",
+  send:"m22 2-7 20-4-9-9-4zM22 2 11 13",
 };
 
-const CUSTOMERS = [
-  { id: "c1", name: "Elena Marsh", phone: "(415) 555-0132", email: "elena.marsh@gmail.com", address: "412 Fulton St, San Francisco, CA", referral: "Instagram", vehicles: [{ year: 2022, make: "Tesla", model: "Model 3", color: "White" }], notes: "Prefers ceramic top-ups every 4 months.", },
-  { id: "c2", name: "Devon Ruiz", phone: "(415) 555-0189", email: "d.ruiz@outlook.com", address: "88 Bryant St, San Francisco, CA", referral: "Google", vehicles: [{ year: 2019, make: "BMW", model: "M3", color: "Black" }, { year: 2021, make: "Toyota", model: "RAV4", color: "Silver" }], notes: "Two-car household, books both together.", },
-  { id: "c3", name: "Priya Nair", phone: "(510) 555-0147", email: "priya.nair@icloud.com", address: "220 Grand Ave, Oakland, CA", referral: "Referral - Elena Marsh", vehicles: [{ year: 2023, make: "Rivian", model: "R1S", color: "Blue" }], notes: "New EV, wants paint correction before first ceramic coat.", },
-  { id: "c4", name: "Marcus Webb", phone: "(415) 555-0166", email: "marcus.webb@webbco.com", address: "1500 Van Ness Ave, San Francisco, CA", referral: "Website", vehicles: [{ year: 2020, make: "Porsche", model: "Cayenne", color: "Grey" }], notes: "Fleet manager, may bring company vehicles.", },
-  { id: "c5", name: "Sofia Chen", phone: "(650) 555-0198", email: "sofia.chen@gmail.com", address: "900 Alma St, Palo Alto, CA", referral: "Yelp", vehicles: [{ year: 2021, make: "Honda", model: "Civic", color: "Red" }], notes: "", },
-  { id: "c6", name: "Isaac Ford", phone: "(415) 555-0121", email: "isaac.ford@proton.me", address: "77 Geary St, San Francisco, CA", referral: "Instagram", vehicles: [{ year: 2018, make: "Ford", model: "Mustang GT", color: "Black" }], notes: "Show car, extremely particular about swirl marks.", },
-];
-
-function d(daysFromToday, hour) {
-  const dt = new Date();
-  dt.setDate(dt.getDate() + daysFromToday);
-  dt.setHours(hour, 0, 0, 0);
-  return dt;
-}
-
-const BOOKINGS = [
-  { id: "b1", customerId: "c1", vehicle: "2022 Tesla Model 3", service: "Ceramic Coating", addOns: ["Wheel Sealant"], date: d(0, 9), duration: 300, employee: "Marco", status: "In Progress", price: 650, addOnPrice: 40, discount: 0, tax: 55.2, deposit: 200, total: 745.2, paymentStatus: "Partial", location: "412 Fulton St, San Francisco" },
-  { id: "b2", customerId: "c2", vehicle: "2019 BMW M3", service: "Full Detail", addOns: [], date: d(0, 13), duration: 180, employee: "Aisha", status: "Scheduled", price: 220, addOnPrice: 0, discount: 0, tax: 18.7, deposit: 0, total: 238.7, paymentStatus: "Unpaid", location: "88 Bryant St, San Francisco" },
-  { id: "b3", customerId: "c3", vehicle: "2023 Rivian R1S", service: "Paint Correction", addOns: ["Ceramic Coating"], date: d(1, 10), duration: 480, employee: "Marco", status: "Confirmed", price: 380, addOnPrice: 650, discount: 50, tax: 84.15, deposit: 300, total: 1064.15, paymentStatus: "Partial", location: "220 Grand Ave, Oakland" },
-  { id: "b4", customerId: "c4", vehicle: "2020 Porsche Cayenne", service: "Exterior Wash", addOns: [], date: d(1, 14), duration: 45, employee: "Junior", status: "Confirmed", price: 45, addOnPrice: 0, discount: 0, tax: 3.83, deposit: 0, total: 48.83, paymentStatus: "Unpaid", location: "1500 Van Ness Ave, San Francisco" },
-  { id: "b5", customerId: "c5", vehicle: "2021 Honda Civic", service: "Interior Detail", addOns: ["Odor Removal"], date: d(2, 11), duration: 100, employee: "Aisha", status: "Awaiting Deposit", price: 120, addOnPrice: 35, discount: 0, tax: 13.18, deposit: 0, total: 168.18, paymentStatus: "Unpaid", location: "900 Alma St, Palo Alto" },
-  { id: "b6", customerId: "c6", vehicle: "2018 Ford Mustang GT", service: "Paint Correction", addOns: [], date: d(3, 9), duration: 240, employee: "Marco", status: "Quote Sent", price: 380, addOnPrice: 0, discount: 0, tax: 32.3, deposit: 0, total: 412.3, paymentStatus: "Unpaid", location: "77 Geary St, San Francisco" },
-  { id: "b7", customerId: "c2", vehicle: "2021 Toyota RAV4", service: "Full Detail", addOns: [], date: d(-1, 10), duration: 180, employee: "Junior", status: "Completed", price: 220, addOnPrice: 0, discount: 0, tax: 18.7, deposit: 0, total: 238.7, paymentStatus: "Paid", location: "88 Bryant St, San Francisco" },
-  { id: "b8", customerId: "c1", vehicle: "2022 Tesla Model 3", service: "Exterior Wash", addOns: [], date: d(-2, 9), duration: 45, employee: "Aisha", status: "Completed", price: 45, addOnPrice: 0, discount: 0, tax: 3.83, deposit: 0, total: 48.83, paymentStatus: "Paid", location: "412 Fulton St, San Francisco" },
-  { id: "b9", customerId: "c5", vehicle: "2021 Honda Civic", service: "Exterior Wash", addOns: [], date: d(-3, 15), duration: 45, employee: "Junior", status: "No Show", price: 45, addOnPrice: 0, discount: 0, tax: 3.83, deposit: 0, total: 48.83, paymentStatus: "Unpaid", location: "900 Alma St, Palo Alto" },
-  { id: "b10", customerId: "c4", vehicle: "2020 Porsche Cayenne", service: "Full Detail", addOns: ["Engine Bay Cleaning"], date: d(-5, 9), duration: 220, employee: "Marco", status: "Completed", price: 220, addOnPrice: 65, discount: 20, tax: 22.78, deposit: 0, total: 287.78, paymentStatus: "Paid", location: "1500 Van Ness Ave, San Francisco" },
-  { id: "b11", customerId: "c3", vehicle: "2023 Rivian R1S", service: "Interior Detail", addOns: [], date: d(4, 9), duration: 90, employee: "Aisha", status: "New Lead", price: 120, addOnPrice: 0, discount: 0, tax: 10.2, deposit: 0, total: 130.2, paymentStatus: "Unpaid", location: "220 Grand Ave, Oakland" },
-  { id: "b12", customerId: "c6", vehicle: "2018 Ford Mustang GT", service: "Ceramic Coating", addOns: [], date: d(-8, 9), duration: 300, employee: "Marco", status: "Completed", price: 650, addOnPrice: 0, discount: 0, tax: 55.25, deposit: 0, total: 705.25, paymentStatus: "Paid", location: "77 Geary St, San Francisco" },
-];
-
-const REVENUE_TREND = [
-  { m: "Feb", revenue: 8200, profit: 3400 }, { m: "Mar", revenue: 9100, profit: 3900 },
-  { m: "Apr", revenue: 8800, profit: 3600 }, { m: "May", revenue: 10400, profit: 4700 },
-  { m: "Jun", revenue: 11800, profit: 5500 }, { m: "Jul", revenue: 13950, profit: 6650 },
-];
-
-const REVENUE_BY_SERVICE = [
-  { name: "Ceramic Coating", value: 5200 }, { name: "Full Detail", value: 3400 },
-  { name: "Paint Correction", value: 2850 }, { name: "Interior Detail", value: 1650 },
-  { name: "Exterior Wash", value: 850 },
-];
-
-const EXPENSE_BREAKDOWN = [
-  { name: "Chemicals", value: 1240 }, { name: "Payroll", value: 4800 },
-  { name: "Equipment", value: 620 }, { name: "Marketing", value: 380 },
-  { name: "Fuel", value: 290 }, { name: "Insurance", value: 410 },
-];
-
-const PIE_COLORS = ["#3457D5", "#C9932E", "#1D9E75", "#D85A30", "#8B8FA3", "#7B61D3"];
-
-const EMPLOYEES = [
-  { id: "e1", name: "Marco Alvarez", role: "Lead Detailer", jobs: 42, revenue: 18400, hours: 168, rating: 4.9, commission: 2760 },
-  { id: "e2", name: "Aisha Bello", role: "Detailer", jobs: 35, revenue: 12100, hours: 152, rating: 4.8, commission: 1815 },
-  { id: "e3", name: "Junior Okafor", role: "Detailer", jobs: 28, revenue: 7300, hours: 140, rating: 4.6, commission: 1095 },
-];
-
-const EXPENSES = [
-  { id: "x1", vendor: "Chemical Guys", category: "Chemicals", amount: 340, method: "Card", date: d(-2, 0) },
-  { id: "x2", vendor: "ADP Payroll", category: "Payroll", amount: 4800, method: "Bank Transfer", date: d(-5, 0) },
-  { id: "x3", vendor: "Costco Fuel", category: "Fuel", amount: 145, method: "Card", date: d(-3, 0) },
-  { id: "x4", vendor: "State Farm", category: "Insurance", amount: 410, method: "Bank Transfer", date: d(-10, 0) },
-  { id: "x5", vendor: "Meta Ads", category: "Marketing", amount: 220, method: "Card", date: d(-6, 0) },
-  { id: "x6", vendor: "Detail King", category: "Equipment", amount: 620, method: "Card", date: d(-14, 0) },
-  { id: "x7", vendor: "Chemical Guys", category: "Chemicals", amount: 190, method: "Card", date: d(-18, 0) },
-];
-
-const INVENTORY = [
-  { id: "i1", name: "Ceramic Coating (50ml)", brand: "Gtechniq", stock: 3, min: 5, unitCost: 85, supplier: "Detail King" },
-  { id: "i2", name: "Microfiber Towels", brand: "The Rag Company", stock: 48, min: 20, unitCost: 3.5, supplier: "Chemical Guys" },
-  { id: "i3", name: "Interior Shampoo (1gal)", brand: "Chemical Guys", stock: 6, min: 4, unitCost: 28, supplier: "Chemical Guys" },
-  { id: "i4", name: "Clay Bar Kit", brand: "Meguiar's", stock: 2, min: 4, unitCost: 15, supplier: "Amazon" },
-  { id: "i5", name: "Wheel Cleaner (1gal)", brand: "Sonax", stock: 9, min: 3, unitCost: 32, supplier: "Detail King" },
-  { id: "i6", name: "Paint Correction Pads", brand: "Lake Country", stock: 14, min: 10, unitCost: 6, supplier: "Chemical Guys" },
-];
-
-const NOTIFICATIONS = [
-  { id: "n1", type: "danger", text: "2 invoices are overdue by more than 7 days.", icon: "Receipt" },
-  { id: "n2", type: "gold", text: "Ceramic Coating and Clay Bar Kit are running low on stock.", icon: "Package" },
-  { id: "n3", type: "accent", text: "3 jobs scheduled for tomorrow morning.", icon: "CalendarDays" },
-  { id: "n4", type: "success", text: "Devon Ruiz paid invoice #1042 in full.", icon: "CheckCircle2" },
-  { id: "n5", type: "gray", text: "Follow up with Sofia Chen — last service was 3 months ago.", icon: "Users" },
-];
-
-/* ---------------------------------- HELPERS ---------------------------------- */
-
-const money = (n) => n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-const moneyExact = (n) => n.toLocaleString("en-US", { style: "currency", currency: "USD" });
-const isSameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-
-function statusColors(theme, colorKey) {
-  const map = {
-    accent: { bg: theme.accentSoft, fg: theme.accent },
-    gold: { bg: theme.goldSoft, fg: theme.gold },
-    success: { bg: theme.successSoft, fg: theme.success },
-    danger: { bg: theme.dangerSoft, fg: theme.danger },
-    gray: { bg: theme.surface2, fg: theme.textSecondary },
-  };
-  return map[colorKey] || map.gray;
-}
-
-function Badge({ theme, children, colorKey = "gray" }) {
-  const c = statusColors(theme, colorKey);
+function Ic({n,size=16,color="currentColor"}) {
+  const d = PATHS[n];
+  if (!d) return null;
   return (
-    <span style={{
-      background: c.bg, color: c.fg, fontFamily: "Inter, sans-serif",
-      fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 999,
-      whiteSpace: "nowrap", display: "inline-block",
-    }}>{children}</span>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d={d}/>
+    </svg>
   );
 }
 
-/* ---------------------------------- KPI GAUGE (signature element) ---------------------------------- */
+/* ── MOCK DATA ─────────────────────────────────────────────────── */
+function daysFrom(n,h=9){const d=new Date();d.setDate(d.getDate()+n);d.setHours(h,0,0,0);return d;}
+const $ = n => n.toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+const $$ = n => n.toLocaleString("en-US",{style:"currency",currency:"USD"});
+const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
 
-function RevenueGauge({ theme, value, target }) {
-  const pct = Math.min(1, value / target);
-  const r = 54, c = 2 * Math.PI * r;
-  return (
-    <div style={{
-      background: `linear-gradient(135deg, ${theme.sidebarBg} 0%, #1B2030 100%)`,
-      borderRadius: 16, padding: "22px 24px", color: "#fff", position: "relative",
-      overflow: "hidden", minHeight: 168, display: "flex", flexDirection: "column", justifyContent: "space-between",
-    }}>
-      <div>
-        <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#9BA3B8", textTransform: "uppercase", letterSpacing: 0.6 }}>
-          Today's revenue
-        </div>
-        <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 32, fontWeight: 600, marginTop: 6, color: "#fff" }}>
-          {moneyExact(value)}
-        </div>
-        <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#7B8296", marginTop: 4 }}>
-          of {money(target)} daily target
-        </div>
-      </div>
-      <svg width="72" height="72" viewBox="0 0 128 128" style={{ position: "absolute", right: 18, top: 18 }}>
-        <circle cx="64" cy="64" r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="10" />
-        <circle
-          cx="64" cy="64" r={r} fill="none" stroke="#C9932E" strokeWidth="10" strokeLinecap="round"
-          strokeDasharray={`${c * pct} ${c}`} transform="rotate(-90 64 64)"
-        />
-        <text x="64" y="70" textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize="22" fontWeight="600" fill="#fff">
-          {Math.round(pct * 100)}%
-        </text>
-      </svg>
-    </div>
-  );
+const STATUS={
+  "New Lead":"gray","Quote Sent":"gray","Awaiting Deposit":"gold",
+  "Confirmed":"acc","Scheduled":"acc","On The Way":"gold",
+  "In Progress":"gold","Completed":"ok","Cancelled":"err","No Show":"err"
+};
+const CUSTOMERS=[];
+const BOOKINGS=[];
+const EMPLOYEES=[];
+const EXPENSES=[];
+const INVENTORY=[];
+const REVENUE_TREND=[];
+const NOTIFS=[
+  {id:"n1",type:"gray",icon:"bell",text:"Notifications will appear here once you add bookings, customers, and inventory."},
+];
+
+/* ── HELPERS ───────────────────────────────────────────────────── */
+function sc(t,k){
+  const m={acc:{bg:t.accS,fg:t.acc},gold:{bg:t.goldS,fg:t.gold},ok:{bg:t.okS,fg:t.ok},err:{bg:t.errS,fg:t.err},gray:{bg:t.surf2,fg:t.txt2}};
+  return m[k]||m.gray;
+}
+function Badge({t,children,k="gray"}){
+  const c=sc(t,k);
+  return <span style={{background:c.bg,color:c.fg,fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:999,whiteSpace:"nowrap"}}>{children}</span>;
 }
 
-function KpiCard({ theme, label, value, sub, icon: Icon, trend }) {
+/* ── CHART.JS WRAPPERS ─────────────────────────────────────────── */
+function LineChartCJ({data,t}){
+  const ref=useRef();
+  useEffect(()=>{
+    const ctx=ref.current.getContext("2d");
+    const ch=new Chart(ctx,{
+      type:"line",
+      data:{
+        labels:data.map(d=>d.m),
+        datasets:[
+          {label:"Revenue",data:data.map(d=>d.rev),borderColor:"#3457D5",backgroundColor:"rgba(52,87,213,0.1)",borderWidth:2.5,tension:0.4,fill:true,pointRadius:3},
+          {label:"Profit",data:data.map(d=>d.profit),borderColor:"#C9932E",borderWidth:2,tension:0.4,fill:false,pointRadius:3}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:t.txt2,font:{size:12}}}},scales:{x:{ticks:{color:t.txt2},grid:{color:t.border}},y:{ticks:{color:t.txt2,callback:v=>"$"+Math.round(v/1000)+"k"},grid:{color:t.border}}}}
+    });
+    return()=>ch.destroy();
+  },[]);
+  return <canvas ref={ref}/>;
+}
+function BarChartCJ({data,label,color,t}){
+  const ref=useRef();
+  useEffect(()=>{
+    const ctx=ref.current.getContext("2d");
+    const ch=new Chart(ctx,{
+      type:"bar",
+      data:{labels:data.map(d=>d.name),datasets:[{label,data:data.map(d=>d.value),backgroundColor:color,borderRadius:6}]},
+      options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:t.txt2,callback:v=>"$"+Math.round(v/1000)+"k"},grid:{color:t.border}},y:{ticks:{color:t.txt2},grid:{display:false}}}}
+    });
+    return()=>ch.destroy();
+  },[]);
+  return <canvas ref={ref}/>;
+}
+function DoughnutCJ({data,t}){
+  const ref=useRef();
+  useEffect(()=>{
+    const ctx=ref.current.getContext("2d");
+    const colors=["#3457D5","#C9932E","#1D9E75","#D85A30","#7B61D3","#8B8FA3"];
+    const ch=new Chart(ctx,{
+      type:"doughnut",
+      data:{labels:data.map(d=>d.name),datasets:[{data:data.map(d=>d.value),backgroundColor:colors,borderWidth:2,borderColor:t.surf}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{color:t.txt2,font:{size:11},boxWidth:12}}}}
+    });
+    return()=>ch.destroy();
+  },[]);
+  return <canvas ref={ref}/>;
+}
+
+/* ── SHARED UI ─────────────────────────────────────────────────── */
+function Card({t,children,style={}}){
+  return <div style={{background:t.surf,border:`1px solid ${t.border}`,borderRadius:14,boxShadow:"0 1px 6px rgba(0,0,0,0.05)",...style}}>{children}</div>;
+}
+function KpiCard({t,label,value,sub,icon,trend}){
   return (
-    <div style={{
-      background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16,
-      padding: "18px 20px", boxShadow: theme.shadow, minHeight: 168,
-      display: "flex", flexDirection: "column", justifyContent: "space-between",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-          {label}
-        </div>
-        {Icon && <Icon size={16} color={theme.textMuted} />}
+    <Card t={t} style={{padding:"16px 18px",display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:130}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:11,fontWeight:600,color:t.txtM,textTransform:"uppercase",letterSpacing:0.5}}>{label}</span>
+        {icon&&<Ic n={icon} size={15} color={t.txtM}/>}
       </div>
       <div>
-        <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 26, fontWeight: 600, color: theme.textPrimary }}>
-          {value}
+        <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:24,fontWeight:600,color:t.txt,marginTop:8}}>{value}</div>
+        {sub&&<div style={{fontSize:12,color:trend==="up"?t.ok:trend==="down"?t.err:t.txt2,marginTop:4,display:"flex",alignItems:"center",gap:4}}>
+          {trend==="up"&&<Ic n="up" size={12} color={t.ok}/>}
+          {trend==="down"&&<Ic n="down" size={12} color={t.err}/>}
+          {sub}
+        </div>}
+      </div>
+    </Card>
+  );
+}
+function ChCard({t,title,height=260,children}){
+  return (
+    <Card t={t}>
+      <div style={{padding:"14px 18px 0",fontWeight:600,fontSize:14,color:t.txt}}>{title}</div>
+      <div style={{height,padding:"8px 12px 14px"}}>{children}</div>
+    </Card>
+  );
+}
+function Drawer({t,onClose,title,children}){
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:100,display:"flex",justifyContent:"flex-end"}} onClick={onClose}>
+      <div style={{width:420,maxWidth:"92vw",background:t.surf,height:"100%",overflowY:"auto",padding:24}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+          <span style={{fontWeight:600,fontSize:17,color:t.txt}}>{title}</span>
+          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:t.txtM}}><Ic n="x" size={20} color={t.txtM}/></button>
         </div>
-        {sub && (
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, fontFamily: "Inter, sans-serif", fontSize: 12, color: trend === "down" ? theme.danger : trend === "up" ? theme.success : theme.textMuted }}>
-            {trend === "up" && <TrendingUp size={13} />}
-            {trend === "down" && <TrendingDown size={13} />}
-            {sub}
-          </div>
-        )}
+        {children}
       </div>
     </div>
   );
 }
-
-function ChartCard({ theme, title, children, height = 260 }) {
+function DSection({t,label,children}){
   return (
-    <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: "18px 20px", boxShadow: theme.shadow }}>
-      <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary, marginBottom: 14 }}>
-        {title}
-      </div>
-      <div style={{ height }}>{children}</div>
-    </div>
-  );
-}
-
-/* ---------------------------------- DASHBOARD ---------------------------------- */
-
-function Dashboard({ theme }) {
-  const today = new Date();
-  const todaysJobs = BOOKINGS.filter(b => isSameDay(b.date, today));
-  const completedToday = todaysJobs.filter(b => b.status === "Completed");
-  const todaysRevenue = todaysJobs.reduce((s, b) => s + b.total, 0);
-  const outstanding = BOOKINGS.filter(b => b.paymentStatus !== "Paid").reduce((s, b) => s + (b.total - b.deposit), 0);
-  const monthlyRevenue = REVENUE_TREND[REVENUE_TREND.length - 1].revenue;
-  const monthlyProfit = REVENUE_TREND[REVENUE_TREND.length - 1].profit;
-  const activeCustomers = CUSTOMERS.length;
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-        <RevenueGauge theme={theme} value={todaysRevenue || 745} target={1800} />
-        <KpiCard theme={theme} label="Weekly revenue" value={money(6420)} sub="+12% vs last week" trend="up" icon={DollarSign} />
-        <KpiCard theme={theme} label="Monthly revenue" value={money(monthlyRevenue)} sub="+18% vs last month" trend="up" icon={TrendingUp} />
-        <KpiCard theme={theme} label="Net profit (MTD)" value={money(monthlyProfit)} sub="47.7% margin" trend="up" icon={Wallet} />
-        <KpiCard theme={theme} label="Outstanding payments" value={money(outstanding)} sub={`${BOOKINGS.filter(b => b.paymentStatus !== "Paid").length} unpaid invoices`} trend="down" icon={Receipt} />
-        <KpiCard theme={theme} label="Jobs scheduled today" value={todaysJobs.length} sub={`${completedToday.length} completed`} icon={CalendarDays} />
-        <KpiCard theme={theme} label="Active customers" value={activeCustomers} sub="2 returning this week" trend="up" icon={Users} />
-        <KpiCard theme={theme} label="Average ticket" value={money(298)} sub="+$24 vs last month" trend="up" icon={Sparkles} />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 16 }}>
-        <ChartCard theme={theme} title="Revenue over time">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={REVENUE_TREND}>
-              <defs>
-                <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={theme.accent} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={theme.accent} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
-              <XAxis dataKey="m" stroke={theme.textMuted} fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke={theme.textMuted} fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
-              <Tooltip contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13 }} formatter={(v) => moneyExact(v)} />
-              <Area type="monotone" dataKey="revenue" stroke={theme.accent} strokeWidth={2.5} fill="url(#rev)" />
-              <Line type="monotone" dataKey="profit" stroke={theme.gold} strokeWidth={2} dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard theme={theme} title="Expense breakdown">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={EXPENSE_BREAKDOWN} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>
-                {EXPENSE_BREAKDOWN.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13 }} formatter={(v) => moneyExact(v)} />
-              <Legend wrapperStyle={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: theme.textSecondary }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <ChartCard theme={theme} title="Revenue by service" height={230}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={REVENUE_BY_SERVICE} layout="vertical" margin={{ left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} horizontal={false} />
-              <XAxis type="number" stroke={theme.textMuted} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
-              <YAxis type="category" dataKey="name" stroke={theme.textMuted} fontSize={12} tickLine={false} axisLine={false} width={110} />
-              <Tooltip contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13 }} formatter={(v) => moneyExact(v)} />
-              <Bar dataKey="value" fill={theme.accent} radius={[0, 6, 6, 0]} barSize={16} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: "18px 20px", boxShadow: theme.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <Sparkles size={16} color={theme.gold} />
-            <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary }}>
-              AI business insights
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              "Revenue is up 18% this month, led by ceramic coating bookings.",
-              "Ceramic Coating generates your highest profit margin at 62%.",
-              "Tuesday afternoons have your lowest booking rate — consider a promo.",
-              "3 customers are overdue for a follow-up: Sofia Chen, Marcus Webb, Isaac Ford.",
-            ].map((tip, i) => (
-              <div key={i} style={{
-                fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textSecondary,
-                lineHeight: 1.5, padding: "10px 12px", background: theme.surface2, borderRadius: 10,
-              }}>{tip}</div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------------------------- BOOKINGS ---------------------------------- */
-
-function BookingDetail({ theme, booking, customer, onClose }) {
-  if (!booking) return null;
-  const meta = STATUS_META[booking.status];
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(10,12,16,0.45)", display: "flex", justifyContent: "flex-end", zIndex: 50 }} onClick={onClose}>
-      <div style={{ width: 420, maxWidth: "92vw", background: theme.surface, height: "100%", overflowY: "auto", padding: 24, boxShadow: "-8px 0 24px rgba(0,0,0,0.15)" }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
-          <div>
-            <Badge theme={theme} colorKey={meta.color}>{booking.status}</Badge>
-            <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 19, fontWeight: 600, color: theme.textPrimary, marginTop: 10 }}>
-              {booking.service}
-            </div>
-            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>
-              {booking.date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {booking.date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: theme.textMuted }}><X size={20} /></button>
-        </div>
-
-        <Section theme={theme} title="Customer">
-          <Row theme={theme} icon={Users} label={customer?.name} />
-          <Row theme={theme} icon={Phone} label={customer?.phone} />
-          <Row theme={theme} icon={Mail} label={customer?.email} />
-          <Row theme={theme} icon={MapPin} label={booking.location} />
-        </Section>
-
-        <Section theme={theme} title="Vehicle">
-          <Row theme={theme} icon={Car} label={booking.vehicle} />
-        </Section>
-
-        <Section theme={theme} title="Appointment">
-          <Row theme={theme} icon={Clock} label={`${booking.duration} min · assigned to ${booking.employee}`} />
-          {booking.addOns.length > 0 && <Row theme={theme} icon={Plus} label={`Add-ons: ${booking.addOns.join(", ")}`} />}
-        </Section>
-
-        <Section theme={theme} title="Financial">
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textSecondary }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span>Service price</span><span style={{ color: theme.textPrimary }}>{moneyExact(booking.price)}</span></div>
-            {booking.addOnPrice > 0 && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Add-ons</span><span style={{ color: theme.textPrimary }}>{moneyExact(booking.addOnPrice)}</span></div>}
-            {booking.discount > 0 && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Discount</span><span style={{ color: theme.danger }}>-{moneyExact(booking.discount)}</span></div>}
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span>Tax</span><span style={{ color: theme.textPrimary }}>{moneyExact(booking.tax)}</span></div>
-            {booking.deposit > 0 && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Deposit paid</span><span style={{ color: theme.success }}>{moneyExact(booking.deposit)}</span></div>}
-            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, marginTop: 4, borderTop: `1px solid ${theme.border}`, fontWeight: 600, color: theme.textPrimary, fontFamily: "IBM Plex Mono, monospace" }}>
-              <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}>Total</span><span>{moneyExact(booking.total)}</span>
-            </div>
-          </div>
-          <div style={{ marginTop: 10 }}><Badge theme={theme} colorKey={booking.paymentStatus === "Paid" ? "success" : booking.paymentStatus === "Partial" ? "gold" : "danger"}>{booking.paymentStatus}</Badge></div>
-        </Section>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 20 }}>
-          {["Edit", "Reschedule", "Send invoice", "Collect payment"].map((a) => (
-            <button key={a} style={{
-              fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, color: theme.textPrimary,
-              background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: 10, padding: "10px 0", cursor: "pointer",
-            }}>{a}</button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Section({ theme, title, children }) {
-  return (
-    <div style={{ marginBottom: 18 }}>
-      <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>{title}</div>
+    <div style={{marginBottom:16}}>
+      <div style={{fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase",letterSpacing:0.5,marginBottom:8}}>{label}</div>
       {children}
     </div>
   );
 }
-function Row({ theme, icon: Icon, label }) {
-  if (!label) return null;
+function DRow({t,icon,text}){
+  if(!text) return null;
+  return <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13.5,color:t.txt,marginBottom:6}}><Ic n={icon} size={13} color={t.txtM}/>{text}</div>;
+}
+function MiniStat({t,label,value}){
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 7, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary }}>
-      <Icon size={14} color={theme.textMuted} /> {label}
+    <div style={{background:t.surf2,borderRadius:10,padding:"10px 12px"}}>
+      <div style={{fontSize:11,fontWeight:600,color:t.txtM,textTransform:"uppercase"}}>{label}</div>
+      <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:15,fontWeight:600,color:t.txt,marginTop:3}}>{value}</div>
     </div>
   );
 }
 
-function Bookings({ theme }) {
-  const [filter, setFilter] = useState("All");
-  const [selected, setSelected] = useState(null);
-  const statuses = ["All", ...Object.keys(STATUS_META)];
-  const filtered = filter === "All" ? BOOKINGS : BOOKINGS.filter(b => b.status === filter);
-  const sorted = [...filtered].sort((a, b) => b.date - a.date);
+/* ── DASHBOARD ─────────────────────────────────────────────────── */
+function invNum(id){return"INV-"+(1030+parseInt(id.replace(/\D/g,""),10));}
+function Dashboard({t}){
+  const today=new Date();
+  const todayBks=BOOKINGS.filter(b=>sameDay(b.date,today));
+  const todayRev=todayBks.reduce((s,b)=>s+b.total,0);
+  const outstanding=BOOKINGS.filter(b=>b.pay!=="Paid").reduce((s,b)=>s+(b.total-b.dep),0);
+  const expTotal=EXPENSES.reduce((s,e)=>s+e.amount,0);
+  const bySvc=[
+    {name:"Ceramic Coating",value:5200},{name:"Full Detail",value:3400},
+    {name:"Paint Correction",value:2850},{name:"Interior Detail",value:1650},{name:"Exterior Wash",value:850}
+  ];
+  const expByCat=Object.values(EXPENSES.reduce((a,e)=>{a[e.cat]=a[e.cat]||{name:e.cat,value:0};a[e.cat].value+=e.amount;return a},{}));
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:14}}>
+        <div style={{background:`linear-gradient(135deg,#12151A 0%,#1B2030 100%)`,borderRadius:14,padding:"18px 20px",color:"#fff",position:"relative",overflow:"hidden",minHeight:130}}>
+          <div style={{fontSize:11,fontWeight:600,color:"#9BA3B8",textTransform:"uppercase",letterSpacing:0.5}}>Today's revenue</div>
+          <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:28,fontWeight:600,marginTop:8}}>{$$(todayRev)}</div>
+          <div style={{fontSize:12,color:"#7B8296",marginTop:4}}>of $1,800 daily target</div>
+          <svg width={70} height={70} viewBox="0 0 128 128" style={{position:"absolute",right:14,top:14}}>
+            <circle cx={64} cy={64} r={54} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={10}/>
+            <circle cx={64} cy={64} r={54} fill="none" stroke="#C9932E" strokeWidth={10} strokeLinecap="round"
+              strokeDasharray={`${339.3*(todayRev/1800)} 339.3`} transform="rotate(-90 64 64)"/>
+            <text x={64} y={70} textAnchor="middle" fontFamily="IBM Plex Mono,monospace" fontSize={22} fontWeight={600} fill="#fff">
+              {Math.round(Math.min(1,todayRev/1800)*100)}%
+            </text>
+          </svg>
+        </div>
+        <KpiCard t={t} label="Monthly revenue" value={$(13950)} sub="+18% vs last month" trend="up" icon="dollar"/>
+        <KpiCard t={t} label="Net profit (MTD)" value={$(6650)} sub="47.7% margin" trend="up" icon="up"/>
+        <KpiCard t={t} label="Outstanding" value={$(outstanding)} sub={`${BOOKINGS.filter(b=>b.pay!=="Paid").length} unpaid`} trend="down" icon="receipt"/>
+        <KpiCard t={t} label="Jobs today" value={todayBks.length} sub={`${todayBks.filter(b=>b.status==="Completed").length} completed`} icon="calendar"/>
+        <KpiCard t={t} label="Total expenses" value={$(expTotal)} sub="this month" icon="wallet"/>
+        <KpiCard t={t} label="Active customers" value={CUSTOMERS.length} sub="+2 this month" trend="up" icon="users"/>
+        <KpiCard t={t} label="Avg ticket" value={$(298)} sub="+$24 vs last month" trend="up" icon="sparkle"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1.6fr 1fr",gap:14}}>
+        <ChCard t={t} title="Revenue & profit trend" height={260}><LineChartCJ data={REVENUE_TREND} t={t}/></ChCard>
+        <ChCard t={t} title="Expense breakdown" height={260}><DoughnutCJ data={[
+          {name:"Payroll",value:4800},{name:"Chemicals",value:530},{name:"Equipment",value:620},
+          {name:"Insurance",value:410},{name:"Marketing",value:220},{name:"Fuel",value:145}
+        ]} t={t}/></ChCard>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <ChCard t={t} title="Revenue by service" height={220}><BarChartCJ data={bySvc} label="Revenue" color="#3457D5" t={t}/></ChCard>
+        <Card t={t} style={{padding:18}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+            <Ic n="sparkle" size={16} color={t.gold}/>
+            <span style={{fontWeight:600,fontSize:14,color:t.txt}}>AI business insights</span>
+          </div>
+          {["Add your first bookings to start receiving AI-powered insights about your business."].map((tip,i)=>(
+            <div key={i} style={{fontSize:13,color:t.txt2,lineHeight:1.5,padding:"9px 11px",background:t.surf2,borderRadius:9,marginBottom:8}}>{tip}</div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+}
 
+/* ── BOOKINGS ──────────────────────────────────────────────────── */
+function Bookings({t}){
+  const [filter,setFilter]=useState("All");
+  const [sel,setSel]=useState(null);
+  const statuses=["All",...Object.keys(STATUS)];
+  const rows=[...BOOKINGS].filter(b=>filter==="All"||b.status===filter).sort((a,b)=>b.date-a.date);
+  const cust=id=>CUSTOMERS.find(c=>c.id===id);
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 14, marginBottom: 6 }}>
-        {statuses.map((s) => (
-          <button key={s} onClick={() => setFilter(s)} style={{
-            fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap",
-            padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-            border: `1px solid ${filter === s ? theme.accent : theme.border}`,
-            background: filter === s ? theme.accentSoft : "transparent",
-            color: filter === s ? theme.accent : theme.textSecondary,
-          }}>{s}</button>
+      <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:12,marginBottom:4}}>
+        {statuses.map(s=>(
+          <button key={s} onClick={()=>setFilter(s)} style={{fontSize:12,fontWeight:600,padding:"6px 13px",borderRadius:999,cursor:"pointer",border:`1px solid ${filter===s?t.acc:t.border}`,background:filter===s?t.accS:"transparent",color:filter===s?t.acc:t.txt2,whiteSpace:"nowrap"}}>
+            {s}
+          </button>
         ))}
       </div>
-
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, overflow: "hidden", boxShadow: theme.shadow }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1.3fr 1fr 0.9fr 0.9fr 0.9fr", padding: "12px 20px", borderBottom: `1px solid ${theme.border}`, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", letterSpacing: 0.4 }}>
+      <Card t={t} style={{overflow:"hidden"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr",padding:"11px 18px",borderBottom:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase"}}>
           <div>Customer / Service</div><div>Vehicle</div><div>Date</div><div>Employee</div><div>Total</div><div>Status</div>
         </div>
-        {sorted.map((b) => {
-          const cust = CUSTOMERS.find(c => c.id === b.customerId);
-          const meta = STATUS_META[b.status];
+        {rows.map(b=>{
+          const c=cust(b.cid);
           return (
-            <div key={b.id} onClick={() => setSelected(b)} style={{
-              display: "grid", gridTemplateColumns: "1.6fr 1.3fr 1fr 0.9fr 0.9fr 0.9fr",
-              padding: "14px 20px", borderBottom: `1px solid ${theme.border}`, cursor: "pointer",
-              fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary, alignItems: "center",
-            }}>
-              <div>
-                <div style={{ fontWeight: 600 }}>{cust?.name}</div>
-                <div style={{ fontSize: 12, color: theme.textSecondary }}>{b.service}</div>
-              </div>
-              <div style={{ color: theme.textSecondary }}>{b.vehicle}</div>
-              <div style={{ color: theme.textSecondary }}>{b.date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div>
-              <div style={{ color: theme.textSecondary }}>{b.employee}</div>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace", fontWeight: 600 }}>{moneyExact(b.total)}</div>
-              <div><Badge theme={theme} colorKey={meta.color}>{b.status}</Badge></div>
+            <div key={b.id} onClick={()=>setSel(b)} style={{display:"grid",gridTemplateColumns:"1.5fr 1.2fr 0.9fr 0.8fr 0.8fr 0.9fr",padding:"13px 18px",borderBottom:`1px solid ${t.border}`,cursor:"pointer",fontSize:13.5,color:t.txt,alignItems:"center"}}>
+              <div><div style={{fontWeight:600}}>{c?.name}</div><div style={{fontSize:12,color:t.txt2}}>{b.service}</div></div>
+              <div style={{color:t.txt2}}>{b.vehicle}</div>
+              <div style={{color:t.txt2}}>{b.date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</div>
+              <div style={{color:t.txt2}}>{b.emp}</div>
+              <div style={{fontFamily:"IBM Plex Mono,monospace",fontWeight:600}}>{$$(b.total)}</div>
+              <div><Badge t={t} k={STATUS[b.status]}>{b.status}</Badge></div>
             </div>
           );
         })}
-      </div>
-
-      {selected && <BookingDetail theme={theme} booking={selected} customer={CUSTOMERS.find(c => c.id === selected.customerId)} onClose={() => setSelected(null)} />}
+      </Card>
+      {sel&&(
+        <Drawer t={t} onClose={()=>setSel(null)} title={sel.service}>
+          <Badge t={t} k={STATUS[sel.status]}>{sel.status}</Badge>
+          <div style={{marginTop:14}}/>
+          <DSection t={t} label="Customer">
+            <DRow t={t} icon="users" text={cust(sel.cid)?.name}/>
+            <DRow t={t} icon="phone" text={cust(sel.cid)?.phone}/>
+            <DRow t={t} icon="mail" text={cust(sel.cid)?.email}/>
+            <DRow t={t} icon="pin" text={sel.loc}/>
+          </DSection>
+          <DSection t={t} label="Vehicle"><DRow t={t} icon="car" text={sel.vehicle}/></DSection>
+          <DSection t={t} label="Appointment">
+            <DRow t={t} icon="clock" text={`${sel.date.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})} · ${sel.dur} min`}/>
+            <DRow t={t} icon="users" text={`Assigned to ${sel.emp}`}/>
+            {sel.addOns.length>0&&<DRow t={t} icon="plus" text={`Add-ons: ${sel.addOns.join(", ")}`}/>}
+          </DSection>
+          <DSection t={t} label="Financials">
+            {[["Service price",$$(sel.price)],["Add-ons",sel.aop>0?$$(sel.aop):null],["Discount",sel.disc>0?`-${$$(sel.disc)}`:null],["Tax",$$(sel.tax)],[`Deposit paid`,sel.dep>0?$$(sel.dep):null]].filter(r=>r[1]).map(([l,v])=>(
+              <div key={l} style={{display:"flex",justifyContent:"space-between",fontSize:13,color:t.txt2,marginBottom:5}}><span>{l}</span><span style={{color:t.txt,fontFamily:"IBM Plex Mono,monospace"}}>{v}</span></div>
+            ))}
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:14,fontWeight:700,color:t.txt,borderTop:`1px solid ${t.border}`,paddingTop:8,marginTop:4}}>
+              <span>Total</span><span style={{fontFamily:"IBM Plex Mono,monospace"}}>{$$(sel.total)}</span>
+            </div>
+            <div style={{marginTop:8}}><Badge t={t} k={sel.pay==="Paid"?"ok":sel.pay==="Partial"?"gold":"err"}>{sel.pay}</Badge></div>
+          </DSection>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
+            {["Edit","Reschedule","Send invoice","Collect payment"].map(a=>(
+              <button key={a} style={{fontSize:13,fontWeight:600,color:t.txt,background:t.surf2,border:`1px solid ${t.border}`,borderRadius:9,padding:"9px 0",cursor:"pointer"}}>{a}</button>
+            ))}
+          </div>
+        </Drawer>
+      )}
     </div>
   );
 }
 
-/* ---------------------------------- CUSTOMERS ---------------------------------- */
-
-function Customers({ theme }) {
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState(CUSTOMERS[0]);
-  const filtered = CUSTOMERS.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
-
-  const custBookings = (id) => BOOKINGS.filter(b => b.customerId === id);
-  const ltv = (id) => custBookings(id).filter(b => b.paymentStatus === "Paid" || b.status === "Completed").reduce((s, b) => s + b.total, 0);
-
+/* ── CUSTOMERS ─────────────────────────────────────────────────── */
+function Customers({t}){
+  const [q,setQ]=useState("");
+  const [sel,setSel]=useState(null);
+  const filtered=CUSTOMERS.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
+  const cbks=id=>BOOKINGS.filter(b=>b.cid===id);
+  const ltv=id=>cbks(id).filter(b=>b.pay==="Paid"||b.status==="Completed").reduce((s,b)=>s+b.total,0);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 16 }}>
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, boxShadow: theme.shadow, overflow: "hidden" }}>
-        <div style={{ padding: 14, borderBottom: `1px solid ${theme.border}` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, background: theme.surface2, borderRadius: 10, padding: "8px 12px" }}>
-            <Search size={15} color={theme.textMuted} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search customers"
-              style={{ border: "none", outline: "none", background: "transparent", fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary, width: "100%" }} />
+    <div style={{display:"grid",gridTemplateColumns:"300px 1fr",gap:14}}>
+      <Card t={t} style={{overflow:"hidden"}}>
+        <div style={{padding:"12px 14px",borderBottom:`1px solid ${t.border}`}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,background:t.surf2,borderRadius:9,padding:"7px 11px"}}>
+            <Ic n="search" size={14} color={t.txtM}/>
+            <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search customers" style={{border:"none",outline:"none",background:"transparent",fontSize:13,color:t.txt,width:"100%"}}/>
           </div>
         </div>
-        <div style={{ maxHeight: 560, overflowY: "auto" }}>
-          {filtered.map((c) => (
-            <div key={c.id} onClick={() => setSelected(c)} style={{
-              padding: "13px 16px", cursor: "pointer", borderBottom: `1px solid ${theme.border}`,
-              background: selected?.id === c.id ? theme.accentSoft : "transparent",
-            }}>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: selected?.id === c.id ? theme.accent : theme.textPrimary }}>{c.name}</div>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>{c.vehicles[0].year} {c.vehicles[0].make} {c.vehicles[0].model}</div>
+        <div style={{maxHeight:520,overflowY:"auto"}}>
+          {filtered.map(c=>(
+            <div key={c.id} onClick={()=>setSel(c)} style={{padding:"12px 14px",cursor:"pointer",borderBottom:`1px solid ${t.border}`,background:sel?.id===c.id?t.accS:"transparent"}}>
+              <div style={{fontWeight:600,fontSize:14,color:sel?.id===c.id?t.acc:t.txt}}>{c.name}</div>
+              <div style={{fontSize:12,color:t.txt2,marginTop:2}}>{c.vehicles[0].year} {c.vehicles[0].make} {c.vehicles[0].model}</div>
             </div>
           ))}
         </div>
-      </div>
-
-      {selected && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 22, boxShadow: theme.shadow }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      </Card>
+      {sel&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <Card t={t} style={{padding:20}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
               <div>
-                <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 20, fontWeight: 600, color: theme.textPrimary }}>{selected.name}</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary, marginTop: 4 }}>Referred via {selected.referral}</div>
+                <div style={{fontWeight:700,fontSize:18,color:t.txt}}>{sel.name}</div>
+                <div style={{fontSize:12,color:t.txt2,marginTop:3}}>via {sel.referral}</div>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {[Phone, Mail, Send].map((Icon, i) => (
-                  <button key={i} style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surface2, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon size={15} color={theme.textSecondary} />
-                  </button>
+              <div style={{display:"flex",gap:7}}>
+                {["phone","mail","send"].map(ic=>(
+                  <button key={ic} style={{width:32,height:32,borderRadius:9,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n={ic} size={14} color={t.txt2}/></button>
                 ))}
               </div>
             </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 18 }}>
-              <MiniStat theme={theme} label="Lifetime value" value={moneyExact(ltv(selected.id))} />
-              <MiniStat theme={theme} label="Jobs completed" value={custBookings(selected.id).filter(b => b.status === "Completed").length} />
-              <MiniStat theme={theme} label="Avg ticket" value={moneyExact(ltv(selected.id) / Math.max(1, custBookings(selected.id).filter(b => b.status === "Completed").length))} />
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+              <MiniStat t={t} label="Lifetime value" value={$$(ltv(sel.id))}/>
+              <MiniStat t={t} label="Jobs" value={cbks(sel.id).filter(b=>b.status==="Completed").length}/>
+              <MiniStat t={t} label="Avg ticket" value={$$(ltv(sel.id)/Math.max(1,cbks(sel.id).filter(b=>b.status==="Completed").length))}/>
             </div>
-
-            <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 6 }}>
-              <Row theme={theme} icon={Phone} label={selected.phone} />
-              <Row theme={theme} icon={Mail} label={selected.email} />
-              <Row theme={theme} icon={MapPin} label={selected.address} />
-            </div>
-
-            {selected.notes && (
-              <div style={{ marginTop: 14, padding: 12, background: theme.surface2, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textSecondary }}>
-                {selected.notes}
-              </div>
-            )}
-          </div>
-
-          <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 22, boxShadow: theme.shadow }}>
-            <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary, marginBottom: 14 }}>Vehicles</div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {selected.vehicles.map((v, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 10, border: `1px solid ${theme.border}`, fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textPrimary }}>
-                  <Car size={14} color={theme.textMuted} /> {v.year} {v.make} {v.model} · {v.color}
+            <DRow t={t} icon="phone" text={sel.phone}/><DRow t={t} icon="mail" text={sel.email}/><DRow t={t} icon="pin" text={sel.address}/>
+            {sel.notes&&<div style={{marginTop:12,padding:"10px 12px",background:t.surf2,borderRadius:9,fontSize:13,color:t.txt2}}>{sel.notes}</div>}
+          </Card>
+          <Card t={t} style={{padding:18}}>
+            <div style={{fontWeight:600,fontSize:14,color:t.txt,marginBottom:12}}>Vehicles</div>
+            <div style={{display:"flex",gap:9,flexWrap:"wrap"}}>
+              {sel.vehicles.map((v,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:7,padding:"8px 13px",borderRadius:9,border:`1px solid ${t.border}`,fontSize:13,color:t.txt}}>
+                  <Ic n="car" size={13} color={t.txtM}/>{v.year} {v.make} {v.model} · {v.color}
                 </div>
               ))}
             </div>
-          </div>
-
-          <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 22, boxShadow: theme.shadow }}>
-            <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary, marginBottom: 14 }}>Service history</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {custBookings(selected.id).sort((a, b) => b.date - a.date).map((b) => {
-                const meta = STATUS_META[b.status];
-                return (
-                  <div key={b.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10, borderBottom: `1px solid ${theme.border}` }}>
-                    <div>
-                      <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 600, color: theme.textPrimary }}>{b.service}</div>
-                      <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: theme.textSecondary }}>{b.date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 13, color: theme.textPrimary }}>{moneyExact(b.total)}</span>
-                      <Badge theme={theme} colorKey={meta.color}>{b.status}</Badge>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          </Card>
+          <Card t={t} style={{padding:18}}>
+            <div style={{fontWeight:600,fontSize:14,color:t.txt,marginBottom:12}}>Service history</div>
+            {cbks(sel.id).sort((a,b)=>b.date-a.date).map(b=>(
+              <div key={b.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingBottom:10,marginBottom:10,borderBottom:`1px solid ${t.border}`}}>
+                <div>
+                  <div style={{fontWeight:600,fontSize:13.5,color:t.txt}}>{b.service}</div>
+                  <div style={{fontSize:12,color:t.txt2}}>{b.date.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}</div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:9}}>
+                  <span style={{fontFamily:"IBM Plex Mono,monospace",fontSize:13}}>{$$(b.total)}</span>
+                  <Badge t={t} k={STATUS[b.status]}>{b.status}</Badge>
+                </div>
+              </div>
+            ))}
+          </Card>
         </div>
       )}
     </div>
   );
 }
 
-function MiniStat({ theme, label, value }) {
+/* ── CALENDAR ──────────────────────────────────────────────────── */
+function CalendarView({t}){
+  const [cur,setCur]=useState(new Date());
+  const [selDay,setSelDay]=useState(new Date());
+  const yr=cur.getFullYear(),mo=cur.getMonth();
+  const firstDay=new Date(yr,mo,1).getDay();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const cells=[...Array(firstDay).fill(null),...Array(daysInMonth).fill(0).map((_,i)=>i+1)];
+  const bksOn=day=>day?BOOKINGS.filter(b=>sameDay(b.date,new Date(yr,mo,day))):[];
+  const selBks=BOOKINGS.filter(b=>sameDay(b.date,selDay)).sort((a,b)=>a.date-b.date);
   return (
-    <div style={{ background: theme.surface2, borderRadius: 10, padding: "10px 12px" }}>
-      <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase" }}>{label}</div>
-      <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 16, fontWeight: 600, color: theme.textPrimary, marginTop: 3 }}>{value}</div>
-    </div>
-  );
-}
-
-/* ---------------------------------- CALENDAR ---------------------------------- */
-
-function CalendarView({ theme }) {
-  const [cursor, setCursor] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState(new Date());
-
-  const year = cursor.getFullYear(), month = cursor.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const startOffset = firstDay.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = [...Array(startOffset).fill(null), ...Array(daysInMonth).fill(0).map((_, i) => i + 1)];
-
-  const bookingsOn = (day) => day ? BOOKINGS.filter(b => isSameDay(b.date, new Date(year, month, day))) : [];
-  const selectedBookings = BOOKINGS.filter(b => isSameDay(b.date, selectedDay)).sort((a, b) => a.date - b.date);
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 20, boxShadow: theme.shadow }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 17, fontWeight: 600, color: theme.textPrimary }}>
-            {cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setCursor(new Date(year, month - 1, 1))} style={navBtn(theme)}><ChevronLeft size={16} color={theme.textSecondary} /></button>
-            <button onClick={() => setCursor(new Date(year, month + 1, 1))} style={navBtn(theme)}><ChevronRight size={16} color={theme.textSecondary} /></button>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 300px",gap:14}}>
+      <Card t={t} style={{padding:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <span style={{fontWeight:600,fontSize:16,color:t.txt}}>{cur.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</span>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>setCur(new Date(yr,mo-1,1))} style={{width:28,height:28,borderRadius:7,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n="chevL" size={15} color={t.txt2}/></button>
+            <button onClick={()=>setCur(new Date(yr,mo+1,1))} style={{width:28,height:28,borderRadius:7,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n="chevR" size={15} color={t.txt2}/></button>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, fontFamily: "Inter, sans-serif" }}>
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textAlign: "center", padding: "4px 0" }}>{d}</div>
-          ))}
-          {cells.map((day, i) => {
-            const jobs = bookingsOn(day);
-            const isSelected = day && isSameDay(new Date(year, month, day), selectedDay);
-            const isToday = day && isSameDay(new Date(year, month, day), new Date());
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=><div key={d} style={{fontSize:11,fontWeight:700,color:t.txtM,textAlign:"center",padding:"3px 0"}}>{d}</div>)}
+          {cells.map((day,i)=>{
+            const jobs=bksOn(day);
+            const isSel=day&&sameDay(new Date(yr,mo,day),selDay);
+            const isToday=day&&sameDay(new Date(yr,mo,day),new Date());
             return (
-              <div key={i} onClick={() => day && setSelectedDay(new Date(year, month, day))} style={{
-                minHeight: 74, borderRadius: 10, padding: 6, cursor: day ? "pointer" : "default",
-                border: `1px solid ${isSelected ? theme.accent : theme.border}`,
-                background: isSelected ? theme.accentSoft : theme.surface2,
-              }}>
-                {day && (
-                  <>
-                    <div style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? theme.accent : theme.textSecondary }}>{day}</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 4 }}>
-                      {jobs.slice(0, 4).map((j) => (
-                        <div key={j.id} style={{ width: 6, height: 6, borderRadius: "50%", background: statusColors(theme, STATUS_META[j.status].color).fg }} />
-                      ))}
-                    </div>
-                  </>
-                )}
+              <div key={i} onClick={()=>day&&setSelDay(new Date(yr,mo,day))} style={{minHeight:68,borderRadius:9,padding:6,cursor:day?"pointer":"default",border:`1px solid ${isSel?t.acc:t.border}`,background:isSel?t.accS:t.surf2}}>
+                {day&&<>
+                  <div style={{fontSize:12,fontWeight:isToday?700:500,color:isToday?t.acc:t.txt2}}>{day}</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:3,marginTop:4}}>
+                    {jobs.slice(0,4).map(j=>{const c=sc(t,STATUS[j.status]);return <div key={j.id} style={{width:6,height:6,borderRadius:"50%",background:c.fg}}/>;})}</div>
+                </>}
               </div>
             );
           })}
         </div>
-      </div>
-
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 20, boxShadow: theme.shadow }}>
-        <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary, marginBottom: 4 }}>
-          {selectedDay.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
-        </div>
-        <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary, marginBottom: 14 }}>{selectedBookings.length} jobs</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {selectedBookings.length === 0 && <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textMuted }}>No jobs scheduled.</div>}
-          {selectedBookings.map((b) => {
-            const cust = CUSTOMERS.find(c => c.id === b.customerId);
-            const meta = STATUS_META[b.status];
-            return (
-              <div key={b.id} style={{ padding: "10px 12px", borderRadius: 10, border: `1px solid ${theme.border}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5, color: theme.textSecondary }}>
-                    {b.date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
-                  </span>
-                  <Badge theme={theme} colorKey={meta.color}>{b.status}</Badge>
-                </div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 600, color: theme.textPrimary, marginTop: 4 }}>{cust?.name}</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary }}>{b.service} · {b.employee}</div>
+      </Card>
+      <Card t={t} style={{padding:18}}>
+        <div style={{fontWeight:600,fontSize:14,color:t.txt,marginBottom:4}}>{selDay.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}</div>
+        <div style={{fontSize:12,color:t.txt2,marginBottom:14}}>{selBks.length} jobs</div>
+        {selBks.length===0&&<div style={{fontSize:13,color:t.txtM}}>No jobs scheduled.</div>}
+        {selBks.map(b=>{
+          const c=CUSTOMERS.find(x=>x.id===b.cid);
+          return (
+            <div key={b.id} style={{padding:"10px 12px",borderRadius:9,border:`1px solid ${t.border}`,marginBottom:9}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontFamily:"IBM Plex Mono,monospace",fontSize:12,color:t.txt2}}>{b.date.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</span>
+                <Badge t={t} k={STATUS[b.status]}>{b.status}</Badge>
               </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-function navBtn(theme) {
-  return { width: 30, height: 30, borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.surface2, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
-}
-
-/* ---------------------------------- SETTINGS (stub) ---------------------------------- */
-
-function SettingsView({ theme }) {
-  const fields = [
-    ["Business name", "Coastline Mobile Detailing"], ["Time zone", "Pacific Time (US)"],
-    ["Business hours", "Mon–Sat, 8:00 AM – 6:00 PM"], ["Default tax rate", "8.5%"],
-  ];
-  return (
-    <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 24, boxShadow: theme.shadow, maxWidth: 560 }}>
-      <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 16, fontWeight: 600, color: theme.textPrimary, marginBottom: 4 }}>Business information</div>
-      <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textSecondary, marginBottom: 18 }}>Phase two adds full settings for taxes, branding, roles, and notifications.</div>
-      {fields.map(([label, val]) => (
-        <div key={label} style={{ marginBottom: 14 }}>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: theme.textMuted, marginBottom: 6 }}>{label}</div>
-          <div style={{ padding: "10px 14px", borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surface2, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary }}>{val}</div>
-        </div>
-      ))}
+              <div style={{fontWeight:600,fontSize:13.5,color:t.txt,marginTop:4}}>{c?.name}</div>
+              <div style={{fontSize:12,color:t.txt2}}>{b.service} · {b.emp}</div>
+            </div>
+          );
+        })}
+      </Card>
     </div>
   );
 }
 
-/* ---------------------------------- INVOICES ---------------------------------- */
-
-function invoiceNumber(id) { return "INV-" + (1030 + parseInt(id.replace(/\D/g, ""), 10)); }
-
-function InvoicesView({ theme }) {
-  const [filter, setFilter] = useState("All");
-  const [selected, setSelected] = useState(null);
-  const invoices = [...BOOKINGS].filter(b => b.status !== "Cancelled" && b.status !== "No Show").sort((a, b) => b.date - a.date);
-  const tabs = ["All", "Paid", "Partial", "Unpaid"];
-  const filtered = filter === "All" ? invoices : invoices.filter(b => b.paymentStatus === filter);
-
-  const totalOutstanding = invoices.filter(b => b.paymentStatus !== "Paid").reduce((s, b) => s + (b.total - b.deposit), 0);
-  const totalPaid = invoices.filter(b => b.paymentStatus === "Paid").reduce((s, b) => s + b.total, 0);
-  const overdue = invoices.filter(b => b.paymentStatus !== "Paid" && b.date < new Date()).length;
-
+/* ── INVOICES ──────────────────────────────────────────────────── */
+function Invoices({t}){
+  const [filter,setFilter]=useState("All");
+  const [sel,setSel]=useState(null);
+  const invoices=[...BOOKINGS].filter(b=>!["Cancelled","No Show"].includes(b.status)).sort((a,b)=>b.date-a.date);
+  const shown=filter==="All"?invoices:invoices.filter(b=>b.pay===filter);
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 18 }}>
-        <KpiCard theme={theme} label="Total collected" value={money(totalPaid)} icon={CheckCircle2} />
-        <KpiCard theme={theme} label="Outstanding" value={money(totalOutstanding)} icon={Receipt} trend="down" />
-        <KpiCard theme={theme} label="Overdue invoices" value={overdue} icon={AlertTriangle} trend={overdue > 0 ? "down" : undefined} />
-        <KpiCard theme={theme} label="Avg invoice value" value={money(invoices.reduce((s, b) => s + b.total, 0) / Math.max(1, invoices.length))} icon={FileText} />
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:16}}>
+        <KpiCard t={t} label="Collected" value={$(invoices.filter(b=>b.pay==="Paid").reduce((s,b)=>s+b.total,0))} icon="check"/>
+        <KpiCard t={t} label="Outstanding" value={$(invoices.filter(b=>b.pay!=="Paid").reduce((s,b)=>s+(b.total-b.dep),0))} icon="receipt" trend="down"/>
+        <KpiCard t={t} label="Overdue" value={invoices.filter(b=>b.pay!=="Paid"&&b.date<new Date()).length} icon="warn"/>
       </div>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setFilter(t)} style={{
-            fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-            border: `1px solid ${filter === t ? theme.accent : theme.border}`,
-            background: filter === t ? theme.accentSoft : "transparent",
-            color: filter === t ? theme.accent : theme.textSecondary,
-          }}>{t}</button>
+      <div style={{display:"flex",gap:7,marginBottom:14}}>
+        {["All","Paid","Partial","Unpaid"].map(f=>(
+          <button key={f} onClick={()=>setFilter(f)} style={{fontSize:12,fontWeight:600,padding:"6px 13px",borderRadius:999,cursor:"pointer",border:`1px solid ${filter===f?t.acc:t.border}`,background:filter===f?t.accS:"transparent",color:filter===f?t.acc:t.txt2}}>{f}</button>
         ))}
       </div>
-
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, overflow: "hidden", boxShadow: theme.shadow }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr 1fr 0.9fr 0.9fr 0.9fr", padding: "12px 20px", borderBottom: `1px solid ${theme.border}`, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase" }}>
+      <Card t={t} style={{overflow:"hidden"}}>
+        <div style={{display:"grid",gridTemplateColumns:"0.9fr 1.4fr 0.9fr 0.8fr 0.8fr 0.9fr",padding:"11px 18px",borderBottom:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase"}}>
           <div>Invoice</div><div>Customer</div><div>Date</div><div>Total</div><div>Balance</div><div>Status</div>
         </div>
-        {filtered.map((b) => {
-          const cust = CUSTOMERS.find(c => c.id === b.customerId);
-          const balance = b.total - b.deposit;
-          const color = b.paymentStatus === "Paid" ? "success" : b.paymentStatus === "Partial" ? "gold" : "danger";
+        {shown.map(b=>{
+          const c=CUSTOMERS.find(x=>x.id===b.cid);
+          const bal=b.total-b.dep;
           return (
-            <div key={b.id} onClick={() => setSelected(b)} style={{
-              display: "grid", gridTemplateColumns: "1fr 1.4fr 1fr 0.9fr 0.9fr 0.9fr", padding: "14px 20px",
-              borderBottom: `1px solid ${theme.border}`, cursor: "pointer", alignItems: "center",
-              fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary,
-            }}>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5 }}>{invoiceNumber(b.id)}</div>
-              <div style={{ fontWeight: 600 }}>{cust?.name}</div>
-              <div style={{ color: theme.textSecondary }}>{b.date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace" }}>{moneyExact(b.total)}</div>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace", color: balance > 0 ? theme.danger : theme.textSecondary }}>{moneyExact(balance)}</div>
-              <div><Badge theme={theme} colorKey={color}>{b.paymentStatus}</Badge></div>
+            <div key={b.id} onClick={()=>setSel(b)} style={{display:"grid",gridTemplateColumns:"0.9fr 1.4fr 0.9fr 0.8fr 0.8fr 0.9fr",padding:"13px 18px",borderBottom:`1px solid ${t.border}`,cursor:"pointer",fontSize:13.5,color:t.txt,alignItems:"center"}}>
+              <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:12}}>{invNum(b.id)}</div>
+              <div style={{fontWeight:600}}>{c?.name}</div>
+              <div style={{color:t.txt2}}>{b.date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</div>
+              <div style={{fontFamily:"IBM Plex Mono,monospace"}}>{$$(b.total)}</div>
+              <div style={{fontFamily:"IBM Plex Mono,monospace",color:bal>0?t.err:t.txt2}}>{$$(bal)}</div>
+              <Badge t={t} k={b.pay==="Paid"?"ok":b.pay==="Partial"?"gold":"err"}>{b.pay}</Badge>
             </div>
           );
         })}
-      </div>
-
-      {selected && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(10,12,16,0.45)", display: "flex", justifyContent: "flex-end", zIndex: 50 }} onClick={() => setSelected(null)}>
-          <div style={{ width: 440, maxWidth: "92vw", background: theme.surface, height: "100%", overflowY: "auto", padding: 28 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
-              <div>
-                <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 18, fontWeight: 600, color: theme.textPrimary }}>{invoiceNumber(selected.id)}</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary, marginTop: 2 }}>Issued {selected.date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
-              </div>
-              <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: theme.textMuted }}><X size={20} /></button>
+      </Card>
+      {sel&&(
+        <Drawer t={t} onClose={()=>setSel(null)} title={invNum(sel.id)}>
+          <div style={{fontSize:12,color:t.txt2,marginBottom:16}}>Issued {sel.date.toLocaleDateString()}</div>
+          <DSection t={t} label="Bill to">
+            <div style={{fontWeight:600,color:t.txt}}>{CUSTOMERS.find(c=>c.id===sel.cid)?.name}</div>
+            <div style={{fontSize:13,color:t.txt2,marginTop:2}}>{sel.vehicle}</div>
+          </DSection>
+          <DSection t={t} label="Line items">
+            {[["Service",sel.price],[...sel.addOns.map(a=>[a,sel.aop])],["Tax",sel.tax]].flat().map(([l,v])=>(
+              <div key={l} style={{display:"flex",justifyContent:"space-between",fontSize:13,color:t.txt2,marginBottom:5}}><span>{l}</span><span style={{fontFamily:"IBM Plex Mono,monospace",color:t.txt}}>{$$(v)}</span></div>
+            ))}
+            <div style={{display:"flex",justifyContent:"space-between",fontWeight:700,fontSize:14,color:t.txt,borderTop:`1px solid ${t.border}`,paddingTop:8,marginTop:4}}>
+              <span>Total due</span><span style={{fontFamily:"IBM Plex Mono,monospace"}}>{$$(sel.total-sel.dep)}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-              <div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase" }}>Bill to</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: theme.textPrimary, marginTop: 4 }}>{CUSTOMERS.find(c => c.id === selected.customerId)?.name}</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary }}>{selected.vehicle}</div>
-              </div>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: theme.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Sparkles size={18} color="#fff" />
-              </div>
-            </div>
-            <div style={{ borderTop: `1px solid ${theme.border}`, borderBottom: `1px solid ${theme.border}`, padding: "14px 0", marginBottom: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary, marginBottom: 8 }}>
-                <span>{selected.service}</span><span style={{ fontFamily: "IBM Plex Mono, monospace" }}>{moneyExact(selected.price)}</span>
-              </div>
-              {selected.addOns.map((a) => (
-                <div key={a} style={{ display: "flex", justifyContent: "space-between", fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textSecondary, marginBottom: 6 }}>
-                  <span>{a}</span><span style={{ fontFamily: "IBM Plex Mono, monospace" }}>{moneyExact(selected.addOnPrice)}</span>
-                </div>
-              ))}
-              <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textSecondary }}>
-                <span>Tax</span><span style={{ fontFamily: "IBM Plex Mono, monospace" }}>{moneyExact(selected.tax)}</span>
-              </div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "Inter, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary, marginBottom: 20 }}>
-              <span>Total due</span><span style={{ fontFamily: "IBM Plex Mono, monospace" }}>{moneyExact(selected.total - selected.deposit)}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <button style={actionBtn(theme)}><Send size={13} /> Email invoice</button>
-              <button style={actionBtn(theme)}><Download size={13} /> Download PDF</button>
-              <button style={{ ...actionBtn(theme), gridColumn: "span 2", background: theme.accent, color: "#fff", border: "none" }}>Mark as paid</button>
-            </div>
+          </DSection>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:12}}>
+            {["Email invoice","Download PDF"].map(a=>(
+              <button key={a} style={{fontSize:13,fontWeight:600,color:t.txt,background:t.surf2,border:`1px solid ${t.border}`,borderRadius:9,padding:"9px 0",cursor:"pointer"}}>{a}</button>
+            ))}
+            <button style={{gridColumn:"span 2",fontSize:13,fontWeight:600,color:"#fff",background:t.acc,border:"none",borderRadius:9,padding:"10px 0",cursor:"pointer"}}>Mark as paid</button>
           </div>
-        </div>
+        </Drawer>
       )}
     </div>
   );
 }
-function actionBtn(theme) {
-  return { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, color: theme.textPrimary, background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: 10, padding: "10px 0", cursor: "pointer" };
-}
 
-/* ---------------------------------- EXPENSES ---------------------------------- */
-
-function ExpensesView({ theme }) {
-  const total = EXPENSES.reduce((s, e) => s + e.amount, 0);
-  const byCategory = Object.values(EXPENSES.reduce((acc, e) => {
-    acc[e.category] = acc[e.category] || { name: e.category, value: 0 };
-    acc[e.category].value += e.amount;
-    return acc;
-  }, {}));
-
+/* ── EXPENSES ──────────────────────────────────────────────────── */
+function Expenses({t}){
+  const total=EXPENSES.reduce((s,e)=>s+e.amount,0);
+  const byCat=Object.values(EXPENSES.reduce((a,e)=>{a[e.cat]=a[e.cat]||{name:e.cat,value:0};a[e.cat].value+=e.amount;return a},{}));
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 18 }}>
-        <KpiCard theme={theme} label="Total expenses (MTD)" value={money(total)} icon={Wallet} />
-        <KpiCard theme={theme} label="Largest category" value="Payroll" sub={money(4800)} icon={BarChart3} />
-        <KpiCard theme={theme} label="Transactions" value={EXPENSES.length} icon={Receipt} />
-        <KpiCard theme={theme} label="Avg per expense" value={money(total / EXPENSES.length)} icon={Percent} />
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:16}}>
+        <KpiCard t={t} label="Total this month" value={$(total)} icon="wallet"/>
+        <KpiCard t={t} label="Largest category" value="Payroll" sub={$(4800)} icon="bars"/>
+        <KpiCard t={t} label="Transactions" value={EXPENSES.length} icon="receipt"/>
       </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 16 }}>
-        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, overflow: "hidden", boxShadow: theme.shadow, height: "fit-content" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${theme.border}` }}>
-            <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary }}>Recent expenses</div>
-            <button style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, color: theme.accent, background: theme.accentSoft, border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer" }}><Plus size={13} /> Add expense</button>
+      <div style={{display:"grid",gridTemplateColumns:"1.5fr 1fr",gap:14}}>
+        <Card t={t} style={{overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 18px",borderBottom:`1px solid ${t.border}`}}>
+            <span style={{fontWeight:600,fontSize:14,color:t.txt}}>Recent expenses</span>
+            <button style={{fontSize:12,fontWeight:700,color:t.acc,background:t.accS,border:"none",borderRadius:8,padding:"6px 12px",cursor:"pointer"}}>+ Add expense</button>
           </div>
-          {EXPENSES.sort((a, b) => b.date - a.date).map((e) => (
-            <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 20px", borderBottom: `1px solid ${theme.border}` }}>
+          {[...EXPENSES].sort((a,b)=>b.date-a.date).map(e=>(
+            <div key={e.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"13px 18px",borderBottom:`1px solid ${t.border}`}}>
               <div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 600, color: theme.textPrimary }}>{e.vendor}</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: theme.textSecondary }}>{e.category} · {e.method} · {e.date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div>
+                <div style={{fontWeight:600,fontSize:13.5,color:t.txt}}>{e.vendor}</div>
+                <div style={{fontSize:12,color:t.txt2}}>{e.cat} · {e.method} · {e.date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</div>
               </div>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 13.5, fontWeight: 600, color: theme.textPrimary }}>{moneyExact(e.amount)}</div>
+              <div style={{fontFamily:"IBM Plex Mono,monospace",fontWeight:600,fontSize:13.5,color:t.txt}}>{$$(e.amount)}</div>
             </div>
           ))}
-        </div>
-
-        <ChartCard theme={theme} title="Spending by category" height={280}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={byCategory} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>
-                {byCategory.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13 }} formatter={(v) => moneyExact(v)} />
-              <Legend wrapperStyle={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: theme.textSecondary }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        </Card>
+        <ChCard t={t} title="Spending by category" height={280}><DoughnutCJ data={byCat} t={t}/></ChCard>
       </div>
     </div>
   );
 }
 
-/* ---------------------------------- INVENTORY ---------------------------------- */
-
-function InventoryView({ theme }) {
-  const lowStock = INVENTORY.filter(i => i.stock <= i.min);
+/* ── INVENTORY ─────────────────────────────────────────────────── */
+function Inventory({t}){
+  const low=INVENTORY.filter(i=>i.stock<=i.min);
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 18 }}>
-        <KpiCard theme={theme} label="Total items" value={INVENTORY.length} icon={Package} />
-        <KpiCard theme={theme} label="Low stock alerts" value={lowStock.length} icon={AlertTriangle} trend={lowStock.length > 0 ? "down" : undefined} />
-        <KpiCard theme={theme} label="Inventory value" value={money(INVENTORY.reduce((s, i) => s + i.stock * i.unitCost, 0))} icon={Wallet} />
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:16}}>
+        <KpiCard t={t} label="Total items" value={INVENTORY.length} icon="box"/>
+        <KpiCard t={t} label="Low stock alerts" value={low.length} icon="warn" trend={low.length>0?"down":undefined}/>
+        <KpiCard t={t} label="Inventory value" value={$(INVENTORY.reduce((s,i)=>s+i.stock*i.cost,0))} icon="wallet"/>
       </div>
-
-      {lowStock.length > 0 && (
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-          {lowStock.map((i) => (
-            <div key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, background: theme.dangerSoft, color: theme.danger, borderRadius: 10, padding: "8px 14px", fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600 }}>
-              <AlertTriangle size={14} /> {i.name} — {i.stock} left (min {i.min})
+      {low.length>0&&(
+        <div style={{display:"flex",gap:9,flexWrap:"wrap",marginBottom:14}}>
+          {low.map(i=>(
+            <div key={i.id} style={{display:"flex",alignItems:"center",gap:7,background:t.errS,color:t.err,borderRadius:9,padding:"7px 13px",fontSize:12.5,fontWeight:600}}>
+              <Ic n="warn" size={13} color={t.err}/> {i.name} — {i.stock} left (min {i.min})
             </div>
           ))}
         </div>
       )}
-
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, overflow: "hidden", boxShadow: theme.shadow }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 0.8fr 0.8fr 1fr", padding: "12px 20px", borderBottom: `1px solid ${theme.border}`, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase" }}>
+      <Card t={t} style={{overflow:"hidden"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1.6fr 1fr 0.7fr 0.7fr 0.9fr",padding:"11px 18px",borderBottom:`1px solid ${t.border}`,fontSize:11,fontWeight:700,color:t.txtM,textTransform:"uppercase"}}>
           <div>Product</div><div>Supplier</div><div>Stock</div><div>Unit cost</div><div>Status</div>
         </div>
-        {INVENTORY.map((i) => {
-          const low = i.stock <= i.min;
-          return (
-            <div key={i.id} style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 0.8fr 0.8fr 1fr", padding: "13px 20px", borderBottom: `1px solid ${theme.border}`, alignItems: "center", fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary }}>
-              <div>
-                <div style={{ fontWeight: 600 }}>{i.name}</div>
-                <div style={{ fontSize: 12, color: theme.textSecondary }}>{i.brand}</div>
-              </div>
-              <div style={{ color: theme.textSecondary }}>{i.supplier}</div>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace" }}>{i.stock}</div>
-              <div style={{ fontFamily: "IBM Plex Mono, monospace" }}>{moneyExact(i.unitCost)}</div>
-              <div><Badge theme={theme} colorKey={low ? "danger" : "success"}>{low ? "Low stock" : "In stock"}</Badge></div>
-            </div>
-          );
-        })}
-      </div>
+        {INVENTORY.map(i=>(
+          <div key={i.id} style={{display:"grid",gridTemplateColumns:"1.6fr 1fr 0.7fr 0.7fr 0.9fr",padding:"13px 18px",borderBottom:`1px solid ${t.border}`,fontSize:13.5,color:t.txt,alignItems:"center"}}>
+            <div><div style={{fontWeight:600}}>{i.name}</div><div style={{fontSize:12,color:t.txt2}}>{i.brand}</div></div>
+            <div style={{color:t.txt2}}>{i.supplier}</div>
+            <div style={{fontFamily:"IBM Plex Mono,monospace"}}>{i.stock}</div>
+            <div style={{fontFamily:"IBM Plex Mono,monospace"}}>{$$(i.cost)}</div>
+            <Badge t={t} k={i.stock<=i.min?"err":"ok"}>{i.stock<=i.min?"Low stock":"In stock"}</Badge>
+          </div>
+        ))}
+      </Card>
     </div>
   );
 }
 
-/* ---------------------------------- EMPLOYEES ---------------------------------- */
-
-function EmployeesView({ theme }) {
+/* ── EMPLOYEES ─────────────────────────────────────────────────── */
+function Employees({t}){
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-      {EMPLOYEES.map((e) => (
-        <div key={e.id} style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 20, boxShadow: theme.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <div style={{ width: 42, height: 42, borderRadius: "50%", background: theme.accentSoft, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 700, color: theme.accent }}>
-              {e.name.split(" ").map(n => n[0]).join("")}
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+      {EMPLOYEES.map(e=>(
+        <Card t={t} key={e.id} style={{padding:20}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+            <div style={{width:42,height:42,borderRadius:"50%",background:t.accS,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,color:t.acc}}>
+              {e.name.split(" ").map(n=>n[0]).join("")}
             </div>
             <div>
-              <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: theme.textPrimary }}>{e.name}</div>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary }}>{e.role}</div>
+              <div style={{fontWeight:600,fontSize:15,color:t.txt}}>{e.name}</div>
+              <div style={{fontSize:12,color:t.txt2}}>{e.role}</div>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, color: theme.gold, fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600 }}>
-              <Star size={13} fill={theme.gold} /> {e.rating}
+            <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:4,color:t.gold,fontWeight:600,fontSize:13}}>
+              <Ic n="star" size={13} color={t.gold}/> {e.rating}
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <MiniStat theme={theme} label="Jobs completed" value={e.jobs} />
-            <MiniStat theme={theme} label="Revenue generated" value={moneyExact(e.revenue)} />
-            <MiniStat theme={theme} label="Hours worked" value={e.hours} />
-            <MiniStat theme={theme} label="Commission" value={moneyExact(e.commission)} />
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <MiniStat t={t} label="Jobs" value={e.jobs}/>
+            <MiniStat t={t} label="Revenue" value={$(e.rev)}/>
+            <MiniStat t={t} label="Hours" value={e.hrs}/>
+            <MiniStat t={t} label="Commission" value={$(e.comm)}/>
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );
 }
 
-/* ---------------------------------- ANALYTICS ---------------------------------- */
-
-function AnalyticsView({ theme }) {
-  const topCustomers = [...CUSTOMERS].map(c => ({
-    name: c.name, value: BOOKINGS.filter(b => b.customerId === c.id && b.status === "Completed").reduce((s, b) => s + b.total, 0),
-  })).sort((a, b) => b.value - a.value).slice(0, 5);
-
+/* ── ANALYTICS ─────────────────────────────────────────────────── */
+function Analytics({t}){
+  const topCust=[...CUSTOMERS].map(c=>({name:c.name.split(" ")[0],value:BOOKINGS.filter(b=>b.cid===c.id&&b.status==="Completed").reduce((s,b)=>s+b.total,0)})).sort((a,b)=>b.value-a.value).slice(0,5);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <ChartCard theme={theme} title="Revenue vs profit trend">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={REVENUE_TREND}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
-              <XAxis dataKey="m" stroke={theme.textMuted} fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke={theme.textMuted} fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
-              <Tooltip contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13 }} formatter={(v) => moneyExact(v)} />
-              <Legend wrapperStyle={{ fontFamily: "Inter, sans-serif", fontSize: 11.5 }} />
-              <Line type="monotone" dataKey="revenue" stroke={theme.accent} strokeWidth={2.5} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="profit" stroke={theme.gold} strokeWidth={2.5} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard theme={theme} title="Top customers by spend" height={260}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={topCustomers} layout="vertical" margin={{ left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} horizontal={false} />
-              <XAxis type="number" stroke={theme.textMuted} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
-              <YAxis type="category" dataKey="name" stroke={theme.textMuted} fontSize={12} tickLine={false} axisLine={false} width={100} />
-              <Tooltip contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, fontFamily: "Inter, sans-serif", fontSize: 13 }} formatter={(v) => moneyExact(v)} />
-              <Bar dataKey="value" fill={theme.gold} radius={[0, 6, 6, 0]} barSize={16} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <ChCard t={t} title="Revenue vs profit trend" height={260}><LineChartCJ data={REVENUE_TREND} t={t}/></ChCard>
+        <ChCard t={t} title="Top customers by spend" height={260}><BarChartCJ data={topCust} label="Revenue" color="#C9932E" t={t}/></ChCard>
       </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 20, boxShadow: theme.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><Award size={16} color={theme.gold} /><div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 14, fontWeight: 600, color: theme.textPrimary }}>Best selling service</div></div>
-          <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 18, fontWeight: 600, color: theme.textPrimary }}>Ceramic Coating</div>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary, marginTop: 2 }}>{money(5200)} in revenue this month</div>
-        </div>
-        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 20, boxShadow: theme.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><TrendingUp size={16} color={theme.success} /><div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 14, fontWeight: 600, color: theme.textPrimary }}>Customer retention</div></div>
-          <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 18, fontWeight: 600, color: theme.textPrimary }}>68%</div>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary, marginTop: 2 }}>of customers rebooked within 90 days</div>
-        </div>
-        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 16, padding: 20, boxShadow: theme.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><BarChart3 size={16} color={theme.accent} /><div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 14, fontWeight: 600, color: theme.textPrimary }}>Quarterly growth</div></div>
-          <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 18, fontWeight: 600, color: theme.textPrimary }}>+24.6%</div>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: theme.textSecondary, marginTop: 2 }}>vs previous quarter</div>
-        </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
+        <Card t={t} style={{padding:18}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}><Ic n="award" size={16} color={t.gold}/><span style={{fontWeight:600,fontSize:14,color:t.txt}}>Best selling</span></div>
+          <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:17,fontWeight:600,color:t.txt}}>Ceramic Coating</div>
+          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>{$(5200)} in revenue this month</div>
+        </Card>
+        <Card t={t} style={{padding:18}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}><Ic n="up" size={16} color={t.ok}/><span style={{fontWeight:600,fontSize:14,color:t.txt}}>Customer retention</span></div>
+          <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:17,fontWeight:600,color:t.txt}}>68%</div>
+          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>rebooked within 90 days</div>
+        </Card>
+        <Card t={t} style={{padding:18}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}><Ic n="bars" size={16} color={t.acc}/><span style={{fontWeight:600,fontSize:14,color:t.txt}}>Quarterly growth</span></div>
+          <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:17,fontWeight:600,color:t.txt}}>+24.6%</div>
+          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>vs previous quarter</div>
+        </Card>
       </div>
     </div>
   );
 }
 
-/* ---------------------------------- NOTIFICATIONS ---------------------------------- */
-
-function NotificationsView({ theme }) {
-  const iconMap = { Receipt, Package, CalendarDays, CheckCircle2, Users };
+/* ── NOTIFICATIONS ─────────────────────────────────────────────── */
+function Notifications({t}){
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
-      {NOTIFICATIONS.map((n) => {
-        const Icon = iconMap[n.icon];
-        const c = statusColors(theme, n.type);
+    <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:620}}>
+      {NOTIFS.map(n=>{
+        const c=sc(t,n.type);
         return (
-          <div key={n.id} style={{ display: "flex", alignItems: "center", gap: 14, background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 14, padding: "14px 18px", boxShadow: theme.shadow }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Icon size={16} color={c.fg} />
+          <div key={n.id} style={{display:"flex",alignItems:"center",gap:14,background:t.surf,border:`1px solid ${t.border}`,borderRadius:13,padding:"13px 17px"}}>
+            <div style={{width:36,height:36,borderRadius:9,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <Ic n={n.icon} size={16} color={c.fg}/>
             </div>
-            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: theme.textPrimary }}>{n.text}</div>
+            <div style={{fontSize:13.5,color:t.txt}}>{n.text}</div>
           </div>
         );
       })}
@@ -1061,104 +836,94 @@ function NotificationsView({ theme }) {
   );
 }
 
-/* ---------------------------------- SHELL ---------------------------------- */
-
-const NAV = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "bookings", label: "Bookings", icon: CalendarDays },
-  { id: "customers", label: "Customers", icon: Users },
-  { id: "calendar", label: "Calendar", icon: CalendarDays },
-  { id: "invoices", label: "Invoicing", icon: FileText },
-  { id: "expenses", label: "Expenses", icon: Wallet },
-  { id: "inventory", label: "Inventory", icon: Package },
-  { id: "employees", label: "Employees", icon: Users },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "settings", label: "Settings", icon: Settings },
-];
-
-function App() {
-  useFonts();
-  const [dark, setDark] = useState(false);
-  const [view, setView] = useState("dashboard");
-  const theme = dark ? THEME.dark : THEME.light;
-
-  const titles = {
-    dashboard: "Dashboard", bookings: "Bookings", customers: "Customers", calendar: "Calendar",
-    invoices: "Invoicing", expenses: "Expenses", inventory: "Inventory", employees: "Employees",
-    analytics: "Analytics", notifications: "Notifications", settings: "Settings",
-  };
-
+/* ── SETTINGS ──────────────────────────────────────────────────── */
+function Settings({t}){
+  const fields=[["Business name","Bay Area Auto Care"],["Phone","—"],["Email","—"],["Address","—"],["Time zone","Pacific Time (US)"],["Business hours","—"],["Default tax rate","—"]];
   return (
-    <div style={{ display: "flex", minHeight: 720, background: theme.bg, fontFamily: "Inter, sans-serif" }}>
-      <div style={{ width: 220, background: theme.sidebarBg, padding: "20px 14px", display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 8px", marginBottom: 26 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: theme.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Sparkles size={15} color="#fff" />
-          </div>
-          <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Coastline</div>
+    <Card t={t} style={{padding:22,maxWidth:520}}>
+      <div style={{fontWeight:600,fontSize:15,color:t.txt,marginBottom:4}}>Business information</div>
+      <div style={{fontSize:13,color:t.txt2,marginBottom:18}}>Connect to Supabase to make settings persistent.</div>
+      {fields.map(([label,val])=>(
+        <div key={label} style={{marginBottom:14}}>
+          <div style={{fontSize:12,fontWeight:600,color:t.txtM,marginBottom:6}}>{label}</div>
+          <div style={{padding:"9px 13px",borderRadius:9,border:`1px solid ${t.border}`,background:t.surf2,fontSize:13.5,color:t.txt}}>{val}</div>
         </div>
-        {NAV.map((n) => {
-          const Icon = n.icon;
-          const active = view === n.id;
+      ))}
+    </Card>
+  );
+}
+
+/* ── SHELL ─────────────────────────────────────────────────────── */
+const NAV=[
+  {id:"dashboard",label:"Dashboard",icon:"dashboard"},
+  {id:"bookings",label:"Bookings",icon:"calendar"},
+  {id:"customers",label:"Customers",icon:"users"},
+  {id:"calendar",label:"Calendar",icon:"calendar"},
+  {id:"invoices",label:"Invoicing",icon:"file"},
+  {id:"expenses",label:"Expenses",icon:"wallet"},
+  {id:"inventory",label:"Inventory",icon:"box"},
+  {id:"employees",label:"Employees",icon:"users"},
+  {id:"analytics",label:"Analytics",icon:"bars"},
+  {id:"notifications",label:"Notifications",icon:"bell"},
+  {id:"settings",label:"Settings",icon:"settings"},
+];
+const VIEWS={dashboard:Dashboard,bookings:Bookings,customers:Customers,calendar:CalendarView,invoices:Invoices,expenses:Expenses,inventory:Inventory,employees:Employees,analytics:Analytics,notifications:Notifications,settings:Settings};
+
+function App(){
+  const [dark,setDark]=useState(false);
+  const [view,setView]=useState("dashboard");
+  const t=dark?T.dark:T.light;
+  const View=VIEWS[view];
+  return (
+    <div style={{display:"flex",minHeight:"100vh",background:t.bg}}>
+      {/* Sidebar */}
+      <div style={{width:210,background:t.side,padding:"18px 12px",display:"flex",flexDirection:"column",gap:3,flexShrink:0,position:"sticky",top:0,height:"100vh",overflowY:"auto"}}>
+        <div style={{display:"flex",alignItems:"center",gap:9,padding:"0 8px",marginBottom:22}}>
+          <div style={{width:26,height:26,borderRadius:7,background:t.acc,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic n="sparkle" size={13} color="#fff"/></div>
+          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:13,fontWeight:700,color:"#fff",lineHeight:1.2}}>Bay Area Auto Care</span>
+        </div>
+        {NAV.map(n=>{
+          const active=view===n.id;
           return (
-            <button key={n.id} onClick={() => setView(n.id)} style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9,
-              border: "none", cursor: "pointer", textAlign: "left",
-              background: active ? "rgba(255,255,255,0.08)" : "transparent",
-              color: active ? theme.sidebarActive : theme.sidebarText,
-              fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500,
-            }}>
-              <Icon size={16} /> {n.label}
+            <button key={n.id} onClick={()=>setView(n.id)} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 11px",borderRadius:8,border:"none",cursor:"pointer",background:active?"rgba(255,255,255,0.09)":"transparent",color:active?"#fff":t.sideTxt,fontSize:13.5,fontWeight:500,textAlign:"left"}}>
+              <Ic n={n.icon} size={15} color={active?"#fff":t.sideTxt}/>{n.label}
             </button>
           );
         })}
-        <div style={{ marginTop: "auto", padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: "50%", background: theme.gold, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#241C0B" }}>OW</div>
+        <div style={{marginTop:"auto",padding:"10px 11px",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:9}}>
+          <div style={{width:28,height:28,borderRadius:"50%",background:t.gold,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#241C0B"}}>OW</div>
           <div>
-            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, color: "#fff" }}>Owner</div>
-            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: theme.sidebarText }}>Full access</div>
+            <div style={{fontSize:12.5,fontWeight:600,color:"#fff"}}>Owner</div>
+            <div style={{fontSize:11,color:t.sideTxt}}>Full access</div>
           </div>
         </div>
       </div>
-
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 28px", borderBottom: `1px solid ${theme.border}` }}>
-          <div style={{ fontFamily: "Space Grotesk, sans-serif", fontSize: 20, fontWeight: 600, color: theme.textPrimary }}>{titles[view]}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: 10, padding: "8px 12px", width: 220 }}>
-              <Search size={14} color={theme.textMuted} />
-              <input placeholder="Search everything..." style={{ border: "none", outline: "none", background: "transparent", fontFamily: "Inter, sans-serif", fontSize: 13, color: theme.textPrimary, width: "100%" }} />
+      {/* Main */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 24px",borderBottom:`1px solid ${t.border}`,background:t.surf,position:"sticky",top:0,zIndex:10}}>
+          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,fontWeight:600,color:t.txt}}>{NAV.find(n=>n.id===view)?.label}</span>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <div style={{display:"flex",alignItems:"center",gap:7,background:t.surf2,border:`1px solid ${t.border}`,borderRadius:9,padding:"7px 11px",width:200}}>
+              <Ic n="search" size={13} color={t.txtM}/>
+              <input placeholder="Search everything..." style={{border:"none",outline:"none",background:"transparent",fontSize:13,color:t.txt,width:"100%"}}/>
             </div>
-            <button onClick={() => setDark(!dark)} style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surface2, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {dark ? <Sun size={16} color={theme.textSecondary} /> : <Moon size={16} color={theme.textSecondary} />}
+            <button onClick={()=>setDark(!dark)} style={{width:34,height:34,borderRadius:9,border:`1px solid ${t.border}`,background:t.surf2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <Ic n={dark?"sun":"moon"} size={15} color={t.txt2}/>
             </button>
-            <button style={{ display: "flex", alignItems: "center", gap: 6, background: theme.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              <Plus size={15} /> New booking
+            <button style={{display:"flex",alignItems:"center",gap:6,background:t.acc,color:"#fff",border:"none",borderRadius:9,padding:"8px 14px",fontSize:13,fontWeight:600,cursor:"pointer"}}>
+              <Ic n="plus" size={14} color="#fff"/> New booking
             </button>
           </div>
         </div>
-
-        <div style={{ padding: 28, overflowY: "auto" }}>
-          {view === "dashboard" && <Dashboard theme={theme} />}
-          {view === "bookings" && <Bookings theme={theme} />}
-          {view === "customers" && <Customers theme={theme} />}
-          {view === "calendar" && <CalendarView theme={theme} />}
-          {view === "invoices" && <InvoicesView theme={theme} />}
-          {view === "expenses" && <ExpensesView theme={theme} />}
-          {view === "inventory" && <InventoryView theme={theme} />}
-          {view === "employees" && <EmployeesView theme={theme} />}
-          {view === "analytics" && <AnalyticsView theme={theme} />}
-          {view === "notifications" && <NotificationsView theme={theme} />}
-          {view === "settings" && <SettingsView theme={theme} />}
+        <div style={{padding:24,overflowY:"auto"}}>
+          <View t={t}/>
         </div>
       </div>
     </div>
   );
 }
 
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<PasswordGate><App/></PasswordGate>);
 </script>
 </body>
 </html>
