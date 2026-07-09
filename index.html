@@ -364,7 +364,7 @@ function Dashboard({t}){
   const outstanding=BOOKINGS.filter(b=>b.pay!=="Paid").reduce((s,b)=>s+(b.total-b.dep),0);
   const expTotal=EXPENSES.reduce((s,e)=>s+e.amount,0);
   const bySvc=[
-    {name:"Ceramic Coating",value:5200},{name:"Full Detail",value:3400},
+    {name:"—",value:5200},{name:"Full Detail",value:3400},
     {name:"Paint Correction",value:2850},{name:"Interior Detail",value:1650},{name:"Exterior Wash",value:850}
   ];
   const expByCat=Object.values(EXPENSES.reduce((a,e)=>{a[e.cat]=a[e.cat]||{name:e.cat,value:0};a[e.cat].value+=e.amount;return a},{}));
@@ -374,23 +374,23 @@ function Dashboard({t}){
         <div style={{background:`linear-gradient(135deg,#12151A 0%,#1B2030 100%)`,borderRadius:14,padding:"18px 20px",color:"#fff",position:"relative",overflow:"hidden",minHeight:130}}>
           <div style={{fontSize:11,fontWeight:600,color:"#9BA3B8",textTransform:"uppercase",letterSpacing:0.5}}>Today's revenue</div>
           <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:28,fontWeight:600,marginTop:8}}>{$$(todayRev)}</div>
-          <div style={{fontSize:12,color:"#7B8296",marginTop:4}}>of $1,800 daily target</div>
+          <div style={{fontSize:12,color:"#7B8296",marginTop:4}}>of $0 daily target</div>
           <svg width={70} height={70} viewBox="0 0 128 128" style={{position:"absolute",right:14,top:14}}>
             <circle cx={64} cy={64} r={54} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={10}/>
             <circle cx={64} cy={64} r={54} fill="none" stroke="#C9932E" strokeWidth={10} strokeLinecap="round"
-              strokeDasharray={`${339.3*(todayRev/1800)} 339.3`} transform="rotate(-90 64 64)"/>
+              strokeDasharray={`${339.3*(todayRev/1)} 339.3`} transform="rotate(-90 64 64)"/>
             <text x={64} y={70} textAnchor="middle" fontFamily="IBM Plex Mono,monospace" fontSize={22} fontWeight={600} fill="#fff">
-              {Math.round(Math.min(1,todayRev/1800)*100)}%
+              {Math.round(0)}%
             </text>
           </svg>
         </div>
-        <KpiCard t={t} label="Monthly revenue" value={$(13950)} sub="+18% vs last month" trend="up" icon="dollar"/>
-        <KpiCard t={t} label="Net profit (MTD)" value={$(6650)} sub="47.7% margin" trend="up" icon="up"/>
-        <KpiCard t={t} label="Outstanding" value={$(outstanding)} sub={`${BOOKINGS.filter(b=>b.pay!=="Paid").length} unpaid`} trend="down" icon="receipt"/>
-        <KpiCard t={t} label="Jobs today" value={todayBks.length} sub={`${todayBks.filter(b=>b.status==="Completed").length} completed`} icon="calendar"/>
-        <KpiCard t={t} label="Total expenses" value={$(expTotal)} sub="this month" icon="wallet"/>
-        <KpiCard t={t} label="Active customers" value={CUSTOMERS.length} sub="+2 this month" trend="up" icon="users"/>
-        <KpiCard t={t} label="Avg ticket" value={$(298)} sub="+$24 vs last month" trend="up" icon="sparkle"/>
+        <KpiCard t={t} label="Monthly revenue" value="$0" sub="no data yet" trend="up" icon="dollar"/>
+        <KpiCard t={t} label="Net profit (MTD)" value="$0" sub="no data yet" trend="up" icon="up"/>
+        <KpiCard t={t} label="Outstanding" value={$(outstanding)} sub="0 unpaid" trend="down" icon="receipt"/>
+        <KpiCard t={t} label="Jobs today" value={todayBks.length} sub="0 completed" icon="calendar"/>
+        <KpiCard t={t} label="Total expenses" value={$(expTotal)} sub="no data yet" icon="wallet"/>
+        <KpiCard t={t} label="Active customers" value="0" sub="no data yet" trend="up" icon="users"/>
+        <KpiCard t={t} label="Avg ticket" value="$0" sub="no data yet" trend="up" icon="sparkle"/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1.6fr 1fr",gap:14}}>
         <ChCard t={t} title="Revenue & profit trend" height={260}><LineChartCJ data={REVENUE_TREND} t={t}/></ChCard>
@@ -634,7 +634,7 @@ function Invoices({t}){
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:16}}>
         <KpiCard t={t} label="Collected" value={$(invoices.filter(b=>b.pay==="Paid").reduce((s,b)=>s+b.total,0))} icon="check"/>
         <KpiCard t={t} label="Outstanding" value={$(invoices.filter(b=>b.pay!=="Paid").reduce((s,b)=>s+(b.total-b.dep),0))} icon="receipt" trend="down"/>
-        <KpiCard t={t} label="Overdue" value={invoices.filter(b=>b.pay!=="Paid"&&b.date<new Date()).length} icon="warn"/>
+        <KpiCard t={t} label="Overdue" value="0" icon="warn"/>
       </div>
       <div style={{display:"flex",gap:7,marginBottom:14}}>
         {["All","Paid","Partial","Unpaid"].map(f=>(
@@ -695,8 +695,8 @@ function Expenses({t}){
     <div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:16}}>
         <KpiCard t={t} label="Total this month" value={$(total)} icon="wallet"/>
-        <KpiCard t={t} label="Largest category" value="Payroll" sub={$(4800)} icon="bars"/>
-        <KpiCard t={t} label="Transactions" value={EXPENSES.length} icon="receipt"/>
+        <KpiCard t={t} label="Largest category" value="—" sub="$0" icon="bars"/>
+        <KpiCard t={t} label="Transactions" value="0" icon="receipt"/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1.5fr 1fr",gap:14}}>
         <Card t={t} style={{overflow:"hidden"}}>
@@ -726,9 +726,9 @@ function Inventory({t}){
   return (
     <div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginBottom:16}}>
-        <KpiCard t={t} label="Total items" value={INVENTORY.length} icon="box"/>
-        <KpiCard t={t} label="Low stock alerts" value={low.length} icon="warn" trend={low.length>0?"down":undefined}/>
-        <KpiCard t={t} label="Inventory value" value={$(INVENTORY.reduce((s,i)=>s+i.stock*i.cost,0))} icon="wallet"/>
+        <KpiCard t={t} label="Total items" value="0" icon="box"/>
+        <KpiCard t={t} label="Low stock alerts" value="0" icon="warn" trend={low.length>0?"down":undefined}/>
+        <KpiCard t={t} label="Inventory value" value="$0" icon="wallet"/>
       </div>
       {low.length>0&&(
         <div style={{display:"flex",gap:9,flexWrap:"wrap",marginBottom:14}}>
@@ -800,17 +800,17 @@ function Analytics({t}){
         <Card t={t} style={{padding:18}}>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}><Ic n="award" size={16} color={t.gold}/><span style={{fontWeight:600,fontSize:14,color:t.txt}}>Best selling</span></div>
           <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:17,fontWeight:600,color:t.txt}}>Ceramic Coating</div>
-          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>{$(5200)} in revenue this month</div>
+          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>"$0 revenue this month"</div>
         </Card>
         <Card t={t} style={{padding:18}}>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}><Ic n="up" size={16} color={t.ok}/><span style={{fontWeight:600,fontSize:14,color:t.txt}}>Customer retention</span></div>
           <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:17,fontWeight:600,color:t.txt}}>68%</div>
-          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>rebooked within 90 days</div>
+          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>no data yet</div>
         </Card>
         <Card t={t} style={{padding:18}}>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}><Ic n="bars" size={16} color={t.acc}/><span style={{fontWeight:600,fontSize:14,color:t.txt}}>Quarterly growth</span></div>
           <div style={{fontFamily:"IBM Plex Mono,monospace",fontSize:17,fontWeight:600,color:t.txt}}>+24.6%</div>
-          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>vs previous quarter</div>
+          <div style={{fontSize:12,color:t.txt2,marginTop:3}}>no data yet</div>
         </Card>
       </div>
     </div>
