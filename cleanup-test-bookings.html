@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Bay Area Auto Care - Test Booking Cleanup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,Inter,sans-serif;background:#000;color:#fff;min-height:100vh;padding:40px 20px;}
+.card{background:#111;border:1px solid #2A2A2A;border-radius:16px;padding:36px;max-width:720px;margin:0 auto;}
+h1{font-size:20px;margin-bottom:6px;}
+.sub{color:#888;font-size:13px;margin-bottom:24px;}
+#status{margin:16px 0;padding:14px;border-radius:9px;background:#1A1A1A;font-size:13px;min-height:20px;line-height:1.6;white-space:pre-line;}
+#status.ok{background:#14532D;color:#4ADE80;}
+#status.err{background:#450A0A;color:#F87171;}
+#status.warn{background:#3A2E0A;color:#FBBF24;}
+.item{padding:12px 14px;border-radius:9px;background:#1A1A1A;margin-bottom:8px;font-size:13px;}
+.item .title{font-weight:600;color:#fff;}
+.item .meta{color:#888;font-size:12px;margin-top:3px;}
+.item .badge{display:inline-block;background:#450A0A;color:#F87171;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:8px;}
+button{width:100%;padding:13px 0;background:#fff;color:#000;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:16px;}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+button.danger{background:#F87171;color:#000;}
+.summary{display:flex;gap:10px;margin-bottom:14px;}
+.stat{flex:1;background:#1A1A1A;border-radius:9px;padding:12px;text-align:center;}
+.stat .n{font-size:20px;font-weight:700;font-family:monospace;}
+.stat .l{font-size:11px;color:#888;text-transform:uppercase;margin-top:3px;}
+#list{max-height:400px;overflow-y:auto;margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Test Booking Cleanup</h1>
+  <div class="sub">Removes leftover test/demo bookings created while testing the Cal.com integration</div>
+
+  <div id="status">Loading Firebase and scanning your bookings...</div>
+  <div id="summary" class="summary" style="display:none"></div>
+  <div id="list"></div>
+
+  <button id="btn" style="display:none">Delete Test Bookings</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyA2Ha9RRVkd4NB6jbdw5WUif6uNqT_UMp0",
+    authDomain: "bay-area-auto-care.firebaseapp.com",
+    projectId: "bay-area-auto-care",
+    storageBucket: "bay-area-auto-care.firebasestorage.app",
+    messagingSenderId: "653913463796",
+    appId: "1:653913463796:web:737acd61ebb004dd9cf7a1"
+  };
+
+  var SOURCES = [
+    {app:'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', fs:'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js'},
+    {app:'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js', fs:'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js'},
+    {app:'https://unpkg.com/firebase@9.23.0/firebase-app-compat.js', fs:'https://unpkg.com/firebase@9.23.0/firebase-firestore-compat.js'}
+  ];
+
+  var statusEl, btnEl, listEl, summaryEl;
+  var db, testBookings = [];
+
+  function setStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = cls || ''; }
+
+  function loadScript(src){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = src; s.onload = resolve;
+      s.onerror = function(){ reject(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function tryLoadFrom(i){
+    if(i >= SOURCES.length){ return Promise.reject(new Error('all_failed')); }
+    return loadScript(SOURCES[i].app).then(function(){ return loadScript(SOURCES[i].fs); })
+      .catch(function(){ return tryLoadFrom(i+1); });
+  }
+
+  /* A booking is "test data" if it has no real customer attached AND
+     no vehicle AND zero dollar value. Every real booking created through
+     the New Booking form requires selecting/creating a customer, so
+     custId is never blank for real jobs -- this makes the filter safe. */
+  function isTestBooking(b){
+    var noCustomer = !b.custId || b.custId === '';
+    var noVehicle = !b.vehicle || b.vehicle === '--';
+    var zeroValue = !b.total || parseFloat(b.total) === 0;
+    return noCustomer && noVehicle && zeroValue;
+  }
+
+  function init(){
+    statusEl = document.getElementById('status');
+    btnEl = document.getElementById('btn');
+    listEl = document.getElementById('list');
+    summaryEl = document.getElementById('summary');
+
+    tryLoadFrom(0).then(function(){
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+      return scan();
+    }).catch(function(err){
+      setStatus('Could not connect to Firebase: ' + err.message, 'err');
+    });
+  }
+
+  function scan(){
+    setStatus('Reading all bookings from Firestore...');
+    return db.collection('bookings').get().then(function(snap){
+      var all = [];
+      snap.forEach(function(doc){ var d = doc.data(); d.id = doc.id; all.push(d); });
+
+      testBookings = all.filter(isTestBooking);
+      var realCount = all.length - testBookings.length;
+
+      summaryEl.style.display = 'flex';
+      summaryEl.innerHTML =
+        '<div class="stat"><div class="n">' + all.length + '</div><div class="l">Total Bookings</div></div>' +
+        '<div class="stat"><div class="n">' + realCount + '</div><div class="l">Real Bookings</div></div>' +
+        '<div class="stat"><div class="n">' + testBookings.length + '</div><div class="l">Test Bookings Found</div></div>';
+
+      if(testBookings.length === 0){
+        setStatus('No test bookings found. Your database only contains real bookings.', 'ok');
+        return;
+      }
+
+      setStatus('Found ' + testBookings.length + ' test booking(s) to remove. Review the list below, then click Delete.', 'warn');
+
+      var html = '';
+      testBookings.forEach(function(b){
+        var d = b.date ? new Date(b.date) : null;
+        html += '<div class="item">' +
+          '<div class="title">' + (b.service || 'Untitled') + '<span class="badge">' + (b.status||'Unknown') + '</span></div>' +
+          '<div class="meta">' + (d ? d.toLocaleDateString() : 'no date') + ' &middot; $' + (parseFloat(b.total)||0).toFixed(2) + ' &middot; source: ' + (b.source || 'manual') + '</div>' +
+        '</div>';
+      });
+      listEl.innerHTML = html;
+
+      btnEl.style.display = 'block';
+      btnEl.className = 'danger';
+      btnEl.textContent = 'Delete ' + testBookings.length + ' Test Booking(s) Permanently';
+      btnEl.onclick = confirmAndDelete;
+    });
+  }
+
+  function confirmAndDelete(){
+    if(!confirm('Permanently delete ' + testBookings.length + ' test booking(s)? This cannot be undone. Your 3 real bookings (Calvin Hopps, Jay Phats, Madison Gunter, etc.) will not be touched.')){
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = 'Deleting...';
+    setStatus('Deleting ' + testBookings.length + ' test booking(s)...');
+
+    var batch = db.batch();
+    testBookings.forEach(function(b){
+      batch.delete(db.collection('bookings').doc(b.id));
+    });
+
+    batch.commit().then(function(){
+      setStatus('Done. Removed ' + testBookings.length + ' test booking(s). Refresh your dashboard, calendar, and analytics to see clean data.', 'ok');
+      btnEl.textContent = 'Cleanup Complete';
+      listEl.innerHTML = '';
+    }).catch(function(err){
+      setStatus('Delete failed: ' + err.message, 'err');
+      btnEl.disabled = false;
+      btnEl.textContent = 'Retry';
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
