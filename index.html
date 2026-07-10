@@ -103,6 +103,18 @@ var firebaseConfig = {
 var fbApp = firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore(fbApp);
 
+/* Force long-polling instead of the default streaming (WebChannel)
+   transport. Firestore's default transport is frequently blocked by
+   corporate proxies, some routers, and privacy-focused DNS/firewall
+   setups even when regular HTTPS to Google domains works fine -- this
+   is the documented fix for "Could not reach Cloud Firestore backend"
+   / [code=unavailable] errors. autoDetectLongPolling tries the fast
+   path first and only falls back to long-polling if needed. */
+db.settings({
+  experimentalAutoDetectLongPolling: true,
+  merge: true
+});
+
 /* DB - Firestore wrapper with localStorage cache for instant reads */
 var DB = (function(){
   /* local cache so UI feels instant */
@@ -285,6 +297,39 @@ function rescheduleOnCal(calUid, newStart){
 }
 
 /* HELPERS */
+function classifyFirestoreError(e){
+  var code = (e && e.code) || '';
+  var msg = (e && e.message) || String(e);
+  if(code==='unavailable' || msg.indexOf('Could not reach Cloud Firestore backend')>=0 || msg.indexOf('unavailable')>=0){
+    return {
+      title: 'Cannot Reach Firestore',
+      detail: 'The app connected to Firebase but Firestore\'s connection is being blocked or dropped -- most commonly by a corporate proxy, VPN, router-level filtering, or a privacy extension that blocks Google\'s streaming API traffic (even though regular Google sites load fine). The app already tries a long-polling fallback automatically. Try a different network (e.g. a phone hotspot) to confirm, or disable VPN/proxy and retry.'
+    };
+  }
+  if(code==='permission-denied' || msg.indexOf('permission-denied')>=0 || msg.indexOf('Missing or insufficient permissions')>=0){
+    return {
+      title: 'Firestore Permission Denied',
+      detail: 'Firestore rejected the request due to Security Rules. In the Firebase Console, go to Firestore Database -> Rules and confirm they allow read/write (e.g. "allow read, write: if true;" for development), then click Publish.'
+    };
+  }
+  if(code==='invalid-argument' || code==='not-found' || msg.indexOf('NOT_FOUND')>=0){
+    return {
+      title: 'Firestore Database Not Found',
+      detail: 'This usually means Firestore was never created for this project, or the projectId in the config doesn\'t match an existing Firestore database. In the Firebase Console, go to Firestore Database and confirm a database exists for project "'+firebaseConfig.projectId+'".'
+    };
+  }
+  if(code==='failed-precondition'){
+    return {
+      title: 'Firestore Configuration Conflict',
+      detail: 'Firestore is open in another tab with incompatible settings, or persistence failed to initialize. Close other tabs of this app and retry.'
+    };
+  }
+  return {
+    title: 'Database Error',
+    detail: msg
+  };
+}
+
 var $=function(n){return(n||0).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});};
 var $$=function(n){return(n||0).toLocaleString('en-US',{style:'currency',currency:'USD'});};
 function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
@@ -2093,7 +2138,7 @@ function App(){
   var rs=useState(0);var refresh=rs[0];var setRefresh=rs[1];
   var bms=useState(false);var bookingModal=bms[0];var setBookingModal=bms[1];
   var loadingS=useState(true);var loading=loadingS[0];var setLoading=loadingS[1];
-  var loadErrS=useState('');var loadErr=loadErrS[0];var setLoadErr=loadErrS[1];
+  var loadErrS=useState(null);var loadErr=loadErrS[0];var setLoadErr=loadErrS[1];
   var t=dark?T.dark:T.light;
   var mobile=useIsMobile();
   var View=VIEWS[view];
@@ -2122,7 +2167,8 @@ function App(){
         setLoading(false);
       })
       .catch(function(e){
-        setLoadErr('Could not connect to database: '+e.message);
+        console.error('Firestore load error:', e);
+        setLoadErr(classifyFirestoreError(e));
         setLoading(false);
       });
   },[]);
@@ -2156,9 +2202,19 @@ function App(){
   }
   if(loadErr){
     return e('div',{style:{minHeight:'100vh',background:'#000',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:12,padding:24}},
-      e('div',{style:{color:'#FF4444',fontSize:16,fontWeight:700,fontFamily:'Inter,sans-serif'}},'Database Error'),
-      e('div',{style:{color:'#888',fontSize:13,fontFamily:'Inter,sans-serif',textAlign:'center',maxWidth:400}},loadErr),
-      e('button',{onClick:function(){window.location.reload();},style:{marginTop:8,padding:'10px 20px',background:'#fff',color:'#000',border:'none',borderRadius:9,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Retry')
+      e('div',{style:{color:'#FF4444',fontSize:17,fontWeight:700,fontFamily:'Inter,sans-serif',textAlign:'center'}},loadErr.title),
+      e('div',{style:{color:'#999',fontSize:13,fontFamily:'Inter,sans-serif',textAlign:'center',maxWidth:440,lineHeight:1.6}},loadErr.detail),
+      e('div',{style:{display:'flex',gap:10,marginTop:10}},
+        e('button',{onClick:function(){window.location.reload();},style:{padding:'10px 20px',background:'#fff',color:'#000',border:'none',borderRadius:9,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Retry'),
+        e('button',{onClick:function(){setLoadErr(null);setLoading(true);
+          var cols=['bookings','customers','employees','expenses','invoices','services'];
+          Promise.all(cols.map(function(c){return DB.load(c);}))
+            .then(function(){return DB.seedServices();})
+            .then(function(){return DB.load('services');})
+            .then(function(){setLoading(false);})
+            .catch(function(e){console.error('Firestore retry error:',e);setLoadErr(classifyFirestoreError(e));setLoading(false);});
+        },style:{padding:'10px 20px',background:'#1A1A1A',color:'#fff',border:'1px solid #333',borderRadius:9,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Retry Without Reload')
+      )
     );
   }
 
