@@ -264,7 +264,11 @@ function syncCalToFirebase(onProgress){
         if(bk && bk.status !== newStatus && bk.source === 'cal.com'){
           toUpdate.push({id: calUidMap[cb.uid], patch:{status:newStatus, updatedAt:new Date().toISOString()}});
         }
-      } else {
+      } else if(cb.status !== 'cancelled' && cb.status !== 'rejected'){
+        /* Never import cancelled/rejected Cal.com bookings -- these add
+           no business value and were the source of test-data buildup
+           in Firestore (a cancelled test booking made on Cal.com kept
+           getting re-synced in on every auto-sync). */
         toAdd.push(mapCalToBooking(cb));
       }
     });
