@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Bay Area Auto Care - Expense Importer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,Inter,sans-serif;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#111;border:1px solid #2A2A2A;border-radius:16px;padding:36px;max-width:540px;width:100%;}
+h1{font-size:20px;margin-bottom:6px;}
+.sub{color:#888;font-size:13px;margin-bottom:24px;}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #222;font-size:13px;}
+.row:last-child{border-bottom:none;}
+#status{margin-top:20px;padding:14px;border-radius:9px;background:#1A1A1A;font-size:13px;min-height:20px;line-height:1.6;white-space:pre-line;}
+#status.ok{background:#14532D;color:#4ADE80;}
+#status.err{background:#450A0A;color:#F87171;}
+#log{margin-top:10px;font-size:11px;color:#666;line-height:1.6;}
+button{width:100%;padding:13px 0;background:#fff;color:#000;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:20px;}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+.warn-box{margin-top:14px;padding:12px 14px;background:#1A1A1A;border:1px solid #333;border-radius:9px;font-size:12px;color:#999;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Expense Importer</h1>
+  <div class="sub">Bay Area Auto Care &mdash; one-time import into Firestore</div>
+
+  <div class="row"><span>Records to import</span><span>30</span></div>
+  <div class="row"><span>Total amount</span><span>$948.51</span></div>
+  <div class="row"><span>Date range</span><span>Jun 22 &ndash; Jul 8, 2026</span></div>
+  <div class="row"><span>Category</span><span>Supplies</span></div>
+
+  <div id="status">Loading Firebase...</div>
+  <div id="log"></div>
+
+  <button id="btn" disabled>Import 30 Expenses</button>
+
+  <div class="warn-box" id="localWarn" style="display:none">
+    <strong>Note:</strong> This file is currently opened directly from your computer (file://). If loading fails, try hosting this file on your live site instead &mdash; for example, add it to your GitHub repo as <code>import.html</code> alongside <code>index.html</code>, then open it at your live Vercel URL (e.g. yoursite.vercel.app/import.html). Your dashboard already works this way.
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var EXPENSES = [
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 29.4,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Car Soap"
+  },
+  {
+    "vendor": "Riomhorry",
+    "cat": "Supplies",
+    "amount": 11.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Detail Brush Set"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 10.78,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Wash Mitts x2"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 14.97,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Spray Wax"
+  },
+  {
+    "vendor": "Amazon Basics",
+    "cat": "Supplies",
+    "amount": 9.59,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "MF Towel x24"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 11.97,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Tire Shine"
+  },
+  {
+    "vendor": "Ecocstm Store",
+    "cat": "Supplies",
+    "amount": 7.19,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Tire Shine Applicator"
+  },
+  {
+    "vendor": "Sminder",
+    "cat": "Supplies",
+    "amount": 25.49,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "1200 GSM Towels"
+  },
+  {
+    "vendor": "Fanttik",
+    "cat": "Supplies",
+    "amount": 62.67,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Car Vaccum"
+  },
+  {
+    "vendor": "LoDrid",
+    "cat": "Supplies",
+    "amount": 23.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Detail Bag"
+  },
+  {
+    "vendor": "P&S",
+    "cat": "Supplies",
+    "amount": 14.39,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Brake Buster"
+  },
+  {
+    "vendor": "KOCHCHEMIE",
+    "cat": "Supplies",
+    "amount": 33.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "GSF PreWash"
+  },
+  {
+    "vendor": "TTRCB",
+    "cat": "Supplies",
+    "amount": 10.39,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Wheel Brushes"
+  },
+  {
+    "vendor": "P&S",
+    "cat": "Supplies",
+    "amount": 34.58,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Express Interior x2"
+  },
+  {
+    "vendor": "MKS Plastics",
+    "cat": "Supplies",
+    "amount": 5.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "5-Gal Bucket"
+  },
+  {
+    "vendor": "Adam's Polishes Store",
+    "cat": "Supplies",
+    "amount": 24.22,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Clay Mitt"
+  },
+  {
+    "vendor": "Home Depot",
+    "cat": "Supplies",
+    "amount": 7.76,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "5-Gal Bucket x2"
+  },
+  {
+    "vendor": "SprayWay/HD",
+    "cat": "Supplies",
+    "amount": 3.68,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "Glass Cleaner"
+  },
+  {
+    "vendor": "ZEP/HD",
+    "cat": "Supplies",
+    "amount": 13.96,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "Spray Bottles x2"
+  },
+  {
+    "vendor": "Ryobi/HD",
+    "cat": "Supplies",
+    "amount": 169.0,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "Pressure Washer"
+  },
+  {
+    "vendor": "Tool Daily",
+    "cat": "Supplies",
+    "amount": 17.99,
+    "date": "2026-06-29",
+    "method": "Card",
+    "notes": "Foam Cannon"
+  },
+  {
+    "vendor": "Meguiar's",
+    "cat": "Supplies",
+    "amount": 43.56,
+    "date": "2026-06-30",
+    "method": "Card",
+    "notes": "Hyper Wash"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 6.99,
+    "date": "2026-07-01",
+    "method": "Card",
+    "notes": "MF Applicator Pad"
+  },
+  {
+    "vendor": "PWACCS",
+    "cat": "Supplies",
+    "amount": 37.8,
+    "date": "2026-07-01",
+    "method": "Card",
+    "notes": "Pressure Washer Hose"
+  },
+  {
+    "vendor": "SEESE",
+    "cat": "Supplies",
+    "amount": 107.97,
+    "date": "2026-07-01",
+    "method": "Card",
+    "notes": "Turbo Fan Blower"
+  },
+  {
+    "vendor": "Adam's Polishes Store",
+    "cat": "Supplies",
+    "amount": 48.44,
+    "date": "2026-07-04",
+    "method": "Card",
+    "notes": "Ceramic Coating Spray"
+  },
+  {
+    "vendor": "HODRANT",
+    "cat": "Supplies",
+    "amount": 37.99,
+    "date": "2026-07-04",
+    "method": "Card",
+    "notes": "Detailing Bag"
+  },
+  {
+    "vendor": "Uhair",
+    "cat": "Supplies",
+    "amount": 26.8,
+    "date": "2026-07-06",
+    "method": "Card",
+    "notes": "Flexable Garden Hose"
+  },
+  {
+    "vendor": "Legendary Care Care",
+    "cat": "Supplies",
+    "amount": 14.99,
+    "date": "2026-07-07",
+    "method": "Card",
+    "notes": "Tire Shine"
+  },
+  {
+    "vendor": "McKillans/AMZN",
+    "cat": "Supplies",
+    "amount": 79.98,
+    "date": "2026-07-08",
+    "method": "Card",
+    "notes": "Pressure Washer Gun"
+  }
+];
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyA2Ha9RRVkd4NB6jbdw5WUif6uNqT_UMp0",
+    authDomain: "bay-area-auto-care.firebaseapp.com",
+    projectId: "bay-area-auto-care",
+    storageBucket: "bay-area-auto-care.firebasestorage.app",
+    messagingSenderId: "653913463796",
+    appId: "1:653913463796:web:737acd61ebb004dd9cf7a1"
+  };
+
+  /* Multiple CDN mirrors of the same Firebase compat SDK -- if one
+     domain fails to load (blocked, DNS filtered, transient outage),
+     the next one is tried automatically. */
+  var SOURCES = [
+    {
+      name: 'gstatic.com',
+      app: 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+      fs:  'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js'
+    },
+    {
+      name: 'jsdelivr.net',
+      app: 'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js',
+      fs:  'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js'
+    },
+    {
+      name: 'unpkg.com',
+      app: 'https://unpkg.com/firebase@9.23.0/firebase-app-compat.js',
+      fs:  'https://unpkg.com/firebase@9.23.0/firebase-firestore-compat.js'
+    }
+  ];
+
+  var statusEl, btnEl, logEl, localWarnEl;
+  var log = [];
+
+  function setStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = cls || ''; }
+  function addLog(msg){ log.push(msg); logEl.textContent = log.join('\n'); }
+
+  function loadScript(src){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ reject(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function tryLoadFrom(sourceIndex){
+    if(sourceIndex >= SOURCES.length){
+      return Promise.reject(new Error('all_failed'));
+    }
+    var src = SOURCES[sourceIndex];
+    addLog('Trying ' + src.name + '...');
+    return loadScript(src.app)
+      .then(function(){ return loadScript(src.fs); })
+      .then(function(){
+        addLog(src.name + ' loaded successfully.');
+        return src.name;
+      })
+      .catch(function(){
+        addLog(src.name + ' failed.');
+        return tryLoadFrom(sourceIndex + 1);
+      });
+  }
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+  function init(){
+    statusEl = document.getElementById('status');
+    btnEl = document.getElementById('btn');
+    logEl = document.getElementById('log');
+    localWarnEl = document.getElementById('localWarn');
+
+    if(window.location.protocol === 'file:'){
+      localWarnEl.style.display = 'block';
+    }
+
+    setStatus('Loading Firebase SDK (trying multiple sources)...');
+
+    tryLoadFrom(0)
+      .then(function(){
+        if(typeof firebase === 'undefined'){
+          throw new Error('Firebase script loaded but the global object is missing.');
+        }
+        firebase.initializeApp(firebaseConfig);
+        firestoreDb = firebase.firestore();
+        firestoreDb.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+        setStatus('Ready to import. Click below to write these expenses to your dashboard\'s database.');
+        btnEl.disabled = false;
+        btnEl.onclick = runImport;
+      })
+      .catch(function(){
+        setStatus(
+          'Could not load Firebase from any source (gstatic.com, jsdelivr.net, unpkg.com all failed).\n\n' +
+          'Since Google and Firebase sites load fine in your browser and you have no ad blocker, this points to the file being opened locally (file://) rather than from a live website. See the note below.',
+          'err'
+        );
+        localWarnEl.style.display = 'block';
+      });
+  }
+
+  var firestoreDb = null;
+
+  function runImport(){
+    btnEl.disabled = true;
+    btnEl.textContent = 'Importing...';
+    setStatus('Checking for existing records to avoid duplicates...');
+
+    var db = firestoreDb || firebase.firestore();
+
+    db.collection('expenses').get().then(function(snap){
+      var existing = [];
+      snap.forEach(function(doc){ existing.push(doc.data()); });
+
+      function isDupe(row){
+        return existing.some(function(e){
+          return e.vendor === row.vendor && e.amount === row.amount && e.date === row.date && e.notes === row.notes;
+        });
+      }
+
+      var toImport = EXPENSES.filter(function(r){ return !isDupe(r); });
+      var skipped = EXPENSES.length - toImport.length;
+
+      if(toImport.length === 0){
+        setStatus('All 30 expenses already exist in your database. Nothing to import.', 'ok');
+        btnEl.textContent = 'Already Imported';
+        return;
+      }
+
+      setStatus('Importing ' + toImport.length + ' expenses' + (skipped ? ' (' + skipped + ' duplicates skipped)' : '') + '...');
+
+      var batch = db.batch();
+      toImport.forEach(function(row){
+        var id = uid();
+        var docRef = db.collection('expenses').doc(id);
+        var record = Object.assign({}, row, {id: id, createdAt: new Date().toISOString()});
+        batch.set(docRef, record);
+      });
+
+      batch.commit().then(function(){
+        setStatus('Done! Imported ' + toImport.length + ' expenses' + (skipped ? ' (' + skipped + ' duplicates skipped).' : '.') + ' Refresh your dashboard to see them.', 'ok');
+        btnEl.textContent = 'Import Complete';
+      }).catch(function(err){
+        setStatus('Import failed: ' + err.message, 'err');
+        btnEl.disabled = false;
+        btnEl.textContent = 'Retry Import';
+      });
+
+    }).catch(function(err){
+      setStatus('Could not connect to database: ' + err.message, 'err');
+      btnEl.disabled = false;
+      btnEl.textContent = 'Retry Import';
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
