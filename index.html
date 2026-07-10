@@ -2093,31 +2093,22 @@ function App(){
   var rs=useState(0);var refresh=rs[0];var setRefresh=rs[1];
   var bms=useState(false);var bookingModal=bms[0];var setBookingModal=bms[1];
   var loadingS=useState(true);var loading=loadingS[0];var setLoading=loadingS[1];
-  var calSyncingS=useState(false);var calSyncing=calSyncingS[0];var setCalSyncing=calSyncingS[1];
   var loadErrS=useState('');var loadErr=loadErrS[0];var setLoadErr=loadErrS[1];
   var t=dark?T.dark:T.light;
   var mobile=useIsMobile();
   var View=VIEWS[view];
   function navTo(id){setView(id);setMenuOpen(false);}
   function reload(){
-    var cols=['bookings','customers','employees','expenses','invoices','services','cal_bookings'];
+    var cols=['bookings','customers','employees','expenses','invoices','services'];
     Promise.all(cols.map(function(c){return DB.load(c);})).then(function(){
       setRefresh(function(r){return r+1;});
-    });
+    }).catch(function(e){console.warn('reload error:',e);});
   }
 
-  function syncCal(){
-    setCalSyncing(true);
-    CalSync.fetchBookings().then(function(){
-      setRefresh(function(r){return r+1;});
-      setCalSyncing(false);
-    }).catch(function(e){
-      alert('Cal.com sync failed: '+e.message);
-      setCalSyncing(false);
-    });
-  }
-
-  /* Load all data from Firestore on mount */
+  /* Load all core data from Firestore on mount.
+     Cal.com sync is intentionally NOT part of this chain -- it runs
+     separately afterward so a Cal.com failure can never block the
+     database connection, the login screen, or the dashboard. */
   useEffect(function(){
     var cols=['bookings','customers','employees','expenses','invoices','services'];
     Promise.all(cols.map(function(c){return DB.load(c);}))
@@ -2128,22 +2119,33 @@ function App(){
         return DB.load('services');
       })
       .then(function(){
-        return CalSync.fetchBookings().catch(function(e){console.warn('Cal.com on load:',e);});
-      })
-      .then(function(){
         setLoading(false);
-        /* Auto-sync Cal.com in background */
-        setTimeout(function(){
-          syncCalToFirebase(function(){}).then(function(){
-            setRefresh(function(r){return r+1;});
-          }).catch(function(e){console.warn('Cal.com auto-sync error:',e.message);});
-        }, 1500);
       })
       .catch(function(e){
         setLoadErr('Could not connect to database: '+e.message);
         setLoading(false);
       });
   },[]);
+
+  /* Cal.com sync -- fully isolated from database load. Runs once the
+     dashboard is already up. If Cal.com is unreachable, misconfigured,
+     or the key is invalid, this only logs a warning and never touches
+     loadErr or the loading screen. */
+  useEffect(function(){
+    if(loading){return;}
+    var timer=setTimeout(function(){
+      try{
+        syncCalToFirebase(function(){}).then(function(){
+          setRefresh(function(r){return r+1;});
+        }).catch(function(e){
+          console.warn('Cal.com sync skipped:',e.message);
+        });
+      }catch(e){
+        console.warn('Cal.com sync unavailable:',e.message);
+      }
+    },1500);
+    return function(){clearTimeout(timer);};
+  },[loading]);
 
   if(loading){
     return e('div',{style:{minHeight:'100vh',background:'#000',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}},
@@ -2235,11 +2237,6 @@ function App(){
             onClick:function(){setDark(!dark);},
             style:{width:34,height:34,borderRadius:9,border:'1px solid '+t.border,background:t.surf2,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}
           },e(Ic,{n:dark?'sun':'moon',size:15,color:t.txt2})),
-          !mobile?e('button',{
-            onClick:syncCal,
-            title:'Sync Cal.com bookings',
-            style:{height:34,padding:'0 12px',borderRadius:9,border:'1px solid '+t.border,background:t.surf2,cursor:calSyncing?'not-allowed':'pointer',fontSize:12,fontWeight:600,color:t.txt2,whiteSpace:'nowrap',fontFamily:'Inter,sans-serif',opacity:calSyncing?0.6:1}
-          },calSyncing?'Syncing...':'Sync Cal.com'):null,
           e('button',{
             onClick:function(){setBookingModal(true);},
             style:{display:'flex',alignItems:'center',gap:5,background:t.acc,color:dark?'#000':'#fff',border:'none',borderRadius:9,padding:mobile?'8px 10px':'8px 14px',fontSize:mobile?12:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'Inter,sans-serif'}
