@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Bay Area Auto Care - Expense Repair Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,Inter,sans-serif;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#111;border:1px solid #2A2A2A;border-radius:16px;padding:36px;max-width:600px;width:100%;}
+h1{font-size:20px;margin-bottom:6px;}
+.sub{color:#888;font-size:13px;margin-bottom:24px;}
+#status{margin:16px 0;padding:14px;border-radius:9px;background:#1A1A1A;font-size:13px;min-height:20px;line-height:1.6;white-space:pre-line;}
+#status.ok{background:#14532D;color:#4ADE80;}
+#status.err{background:#450A0A;color:#F87171;}
+#status.warn{background:#3A2E0A;color:#FBBF24;}
+#diff{margin-top:10px;font-size:12.5px;line-height:1.9;}
+.diff-row{display:flex;justify-content:space-between;padding:7px 10px;border-radius:7px;margin-bottom:4px;}
+.diff-missing{background:#3A2E0A;color:#FBBF24;}
+.diff-present{background:#0F1F14;color:#4ADE80;}
+button{width:100%;padding:13px 0;background:#fff;color:#000;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:16px;}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+.summary{display:flex;gap:10px;margin-top:14px;}
+.stat{flex:1;background:#1A1A1A;border-radius:9px;padding:12px;text-align:center;}
+.stat .n{font-size:20px;font-weight:700;font-family:monospace;}
+.stat .l{font-size:11px;color:#888;text-transform:uppercase;margin-top:3px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Expense Repair Tool</h1>
+  <div class="sub">Finds and fixes missing expense records in Firestore</div>
+
+  <div id="status">Loading Firebase and checking your database...</div>
+  <div id="summary" class="summary" style="display:none"></div>
+  <div id="diff"></div>
+
+  <button id="btn" style="display:none">Add Missing Records</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var CANONICAL = [
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 29.4,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Car Soap"
+  },
+  {
+    "vendor": "Riomhorry",
+    "cat": "Supplies",
+    "amount": 11.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Detail Brush Set"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 10.78,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Wash Mitts x2"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 14.97,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Spray Wax"
+  },
+  {
+    "vendor": "Amazon Basics",
+    "cat": "Supplies",
+    "amount": 9.59,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "MF Towel x24"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 11.97,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Tire Shine"
+  },
+  {
+    "vendor": "Ecocstm Store",
+    "cat": "Supplies",
+    "amount": 7.19,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Tire Shine Applicator"
+  },
+  {
+    "vendor": "Sminder",
+    "cat": "Supplies",
+    "amount": 25.49,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "1200 GSM Towels"
+  },
+  {
+    "vendor": "Fanttik",
+    "cat": "Supplies",
+    "amount": 62.67,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Car Vaccum"
+  },
+  {
+    "vendor": "LoDrid",
+    "cat": "Supplies",
+    "amount": 23.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Detail Bag"
+  },
+  {
+    "vendor": "P&S",
+    "cat": "Supplies",
+    "amount": 14.39,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Brake Buster"
+  },
+  {
+    "vendor": "KOCHCHEMIE",
+    "cat": "Supplies",
+    "amount": 33.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "GSF PreWash"
+  },
+  {
+    "vendor": "TTRCB",
+    "cat": "Supplies",
+    "amount": 10.39,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Wheel Brushes"
+  },
+  {
+    "vendor": "P&S",
+    "cat": "Supplies",
+    "amount": 34.58,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Express Interior x2"
+  },
+  {
+    "vendor": "MKS Plastics",
+    "cat": "Supplies",
+    "amount": 5.99,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "5-Gal Bucket"
+  },
+  {
+    "vendor": "Adam's Polishes Store",
+    "cat": "Supplies",
+    "amount": 24.22,
+    "date": "2026-06-22",
+    "method": "Card",
+    "notes": "Clay Mitt"
+  },
+  {
+    "vendor": "Home Depot",
+    "cat": "Supplies",
+    "amount": 7.76,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "5-Gal Bucket x2"
+  },
+  {
+    "vendor": "SprayWay/HD",
+    "cat": "Supplies",
+    "amount": 3.68,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "Glass Cleaner"
+  },
+  {
+    "vendor": "ZEP/HD",
+    "cat": "Supplies",
+    "amount": 13.96,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "Spray Bottles x2"
+  },
+  {
+    "vendor": "Ryobi/HD",
+    "cat": "Supplies",
+    "amount": 169.0,
+    "date": "2026-06-23",
+    "method": "Cash",
+    "notes": "Pressure Washer"
+  },
+  {
+    "vendor": "Tool Daily",
+    "cat": "Supplies",
+    "amount": 17.99,
+    "date": "2026-06-29",
+    "method": "Card",
+    "notes": "Foam Cannon"
+  },
+  {
+    "vendor": "Meguiar's",
+    "cat": "Supplies",
+    "amount": 43.56,
+    "date": "2026-06-30",
+    "method": "Card",
+    "notes": "Hyper Wash"
+  },
+  {
+    "vendor": "Chemical Guys",
+    "cat": "Supplies",
+    "amount": 6.99,
+    "date": "2026-07-01",
+    "method": "Card",
+    "notes": "MF Applicator Pad"
+  },
+  {
+    "vendor": "PWACCS",
+    "cat": "Supplies",
+    "amount": 37.8,
+    "date": "2026-07-01",
+    "method": "Card",
+    "notes": "Pressure Washer Hose"
+  },
+  {
+    "vendor": "SEESE",
+    "cat": "Supplies",
+    "amount": 107.97,
+    "date": "2026-07-01",
+    "method": "Card",
+    "notes": "Turbo Fan Blower"
+  },
+  {
+    "vendor": "Adam's Polishes Store",
+    "cat": "Supplies",
+    "amount": 48.44,
+    "date": "2026-07-04",
+    "method": "Card",
+    "notes": "Ceramic Coating Spray"
+  },
+  {
+    "vendor": "HODRANT",
+    "cat": "Supplies",
+    "amount": 37.99,
+    "date": "2026-07-04",
+    "method": "Card",
+    "notes": "Detailing Bag"
+  },
+  {
+    "vendor": "Uhair",
+    "cat": "Supplies",
+    "amount": 26.8,
+    "date": "2026-07-06",
+    "method": "Card",
+    "notes": "Flexable Garden Hose"
+  },
+  {
+    "vendor": "Legendary Care Care",
+    "cat": "Supplies",
+    "amount": 14.99,
+    "date": "2026-07-07",
+    "method": "Card",
+    "notes": "Tire Shine"
+  },
+  {
+    "vendor": "McKillans/AMZN",
+    "cat": "Supplies",
+    "amount": 79.98,
+    "date": "2026-07-08",
+    "method": "Card",
+    "notes": "Pressure Washer Gun"
+  }
+];
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyA2Ha9RRVkd4NB6jbdw5WUif6uNqT_UMp0",
+    authDomain: "bay-area-auto-care.firebaseapp.com",
+    projectId: "bay-area-auto-care",
+    storageBucket: "bay-area-auto-care.firebasestorage.app",
+    messagingSenderId: "653913463796",
+    appId: "1:653913463796:web:737acd61ebb004dd9cf7a1"
+  };
+
+  var SOURCES = [
+    {app:'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', fs:'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js'},
+    {app:'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js', fs:'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js'},
+    {app:'https://unpkg.com/firebase@9.23.0/firebase-app-compat.js', fs:'https://unpkg.com/firebase@9.23.0/firebase-firestore-compat.js'}
+  ];
+
+  var statusEl, btnEl, diffEl, summaryEl;
+  var db, missingRows = [];
+
+  function setStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = cls || ''; }
+
+  function loadScript(src){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = function(){ reject(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function tryLoadFrom(i){
+    if(i >= SOURCES.length){ return Promise.reject(new Error('all_failed')); }
+    return loadScript(SOURCES[i].app).then(function(){ return loadScript(SOURCES[i].fs); })
+      .catch(function(){ return tryLoadFrom(i+1); });
+  }
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+  function matches(a, b){
+    return a.vendor===b.vendor && Math.abs(a.amount-b.amount)<0.001 && a.date===b.date && a.notes===b.notes;
+  }
+
+  function init(){
+    statusEl = document.getElementById('status');
+    btnEl = document.getElementById('btn');
+    diffEl = document.getElementById('diff');
+    summaryEl = document.getElementById('summary');
+
+    tryLoadFrom(0).then(function(){
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+      return checkDatabase();
+    }).catch(function(err){
+      setStatus('Could not connect to Firebase: ' + err.message, 'err');
+    });
+  }
+
+  function checkDatabase(){
+    setStatus('Reading current expense records from Firestore...');
+    return db.collection('expenses').get().then(function(snap){
+      var existing = [];
+      snap.forEach(function(doc){ existing.push(doc.data()); });
+
+      missingRows = CANONICAL.filter(function(c){
+        return !existing.some(function(e){ return matches(e, c); });
+      });
+
+      var existingTotal = existing.reduce(function(s,r){ return s+(parseFloat(r.amount)||0); }, 0);
+      var canonicalTotal = CANONICAL.reduce(function(s,r){ return s+r.amount; }, 0);
+      var missingTotal = missingRows.reduce(function(s,r){ return s+r.amount; }, 0);
+
+      summaryEl.style.display = 'flex';
+      summaryEl.innerHTML =
+        '<div class="stat"><div class="n">' + existing.length + '/' + CANONICAL.length + '</div><div class="l">Records Found</div></div>' +
+        '<div class="stat"><div class="n">$' + existingTotal.toFixed(2) + '</div><div class="l">Current Total</div></div>' +
+        '<div class="stat"><div class="n">$' + canonicalTotal.toFixed(2) + '</div><div class="l">Correct Total</div></div>';
+
+      if(missingRows.length === 0){
+        setStatus('All ' + CANONICAL.length + ' expense records are present and correct. Total: $' + existingTotal.toFixed(2) + '. Nothing to fix.', 'ok');
+        return;
+      }
+
+      setStatus('Found ' + missingRows.length + ' missing record(s) totaling $' + missingTotal.toFixed(2) + '. Adding these will bring your total from $' + existingTotal.toFixed(2) + ' to $' + canonicalTotal.toFixed(2) + '.', 'warn');
+
+      var html = '';
+      missingRows.forEach(function(r){
+        html += '<div class="diff-row diff-missing">' +
+          '<span>' + r.date + ' &mdash; ' + r.notes + '</span>' +
+          '<span>$' + r.amount.toFixed(2) + '</span></div>';
+      });
+      diffEl.innerHTML = html;
+
+      btnEl.style.display = 'block';
+      btnEl.textContent = 'Add ' + missingRows.length + ' Missing Record(s)';
+      btnEl.onclick = fixMissing;
+    });
+  }
+
+  function fixMissing(){
+    btnEl.disabled = true;
+    btnEl.textContent = 'Adding records...';
+    setStatus('Writing ' + missingRows.length + ' missing record(s) to Firestore...');
+
+    var batch = db.batch();
+    missingRows.forEach(function(row){
+      var id = uid();
+      var docRef = db.collection('expenses').doc(id);
+      batch.set(docRef, Object.assign({}, row, {id: id, createdAt: new Date().toISOString()}));
+    });
+
+    batch.commit().then(function(){
+      var addedTotal = missingRows.reduce(function(s,r){ return s+r.amount; }, 0);
+      setStatus('Fixed! Added ' + missingRows.length + ' record(s) totaling $' + addedTotal.toFixed(2) + '. Refresh your dashboard to see the corrected totals.', 'ok');
+      btnEl.textContent = 'Repair Complete';
+      diffEl.innerHTML = '';
+    }).catch(function(err){
+      setStatus('Repair failed: ' + err.message, 'err');
+      btnEl.disabled = false;
+      btnEl.textContent = 'Retry';
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
