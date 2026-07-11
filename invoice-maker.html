@@ -110,8 +110,8 @@ body{font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;min-height:100vh
   <div class="field"><label>Notes</label><textarea id="f_notes" rows="3" placeholder="Thank you for choosing Bay Area Auto Care!"></textarea></div>
   <div class="field"><label>Payment Terms</label><textarea id="f_terms" rows="2"></textarea></div>
 </div>
-<div class="actions"><button class="btn btn-w" id="printBtn">&#x1F5A8; Print / Save PDF</button><button class="btn btn-g" id="emailBtn">&#x2709; Copy Email</button><button class="btn btn-s" id="clearBtn">Clear</button></div>
-<div class="copied" id="copied">Copied! Paste into Gmail, Messages, or any email app.</div>
+<div class="actions"><button class="btn btn-w" id="printBtn">&#x1F5A8; Print / Save PDF</button><button class="btn btn-g" id="emailBtn">&#x2709; Send via Gmail</button><button class="btn btn-s" id="clearBtn">Clear</button></div>
+<div class="copied" id="copied">Opening Gmail...</div>
 </div>
 <div class="preview-wrap"><div class="preview-label">Live Preview</div><div class="preview-card" id="preview"></div></div>
 </div>
@@ -212,30 +212,48 @@ g('clearBtn').addEventListener('click',function(){
 });
 g('emailBtn').addEventListener('click',function(){
   var v=totals();
-  var name=g('f_name').value||'Customer';
+  var custName=g('f_name').value||'Customer';
+  var custEmail=g('f_email').value||'';
   var num=g('f_num').value||'INV-1001';
   var due=g('f_due').value;
-  var fmtD=function(s){if(!s){return 'upon receipt';}var d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});};
   var veh=g('f_veh').value;
   var pay=g('f_pay').value;
-  var lineList=items.filter(function(it){return it.d;}).map(function(it){return '  \u2022 '+it.d+' x'+it.q+' \u2014 $'+(it.q*it.p).toFixed(2);}).join('\n');
-  var txt='Hi '+name.split(' ')[0]+',\n\nThank you for choosing Bay Area Auto Care! Here are your invoice details.\n\n';
-  txt+='Invoice: '+num+'\n';
-  if(veh){txt+='Vehicle: '+veh+'\n';}
-  txt+='\nSERVICES:\n'+lineList+'\n\n';
-  txt+='Subtotal: $'+v.sub.toFixed(2)+'\n';
-  if(v.disc>0){txt+='Discount: -$'+v.disc.toFixed(2)+'\n';}
-  txt+='Tax ('+v.taxR+'%): $'+v.tax.toFixed(2)+'\n';
-  txt+='TOTAL: $'+v.total.toFixed(2)+'\n';
-  if(v.tip>0){txt+='Tip: $'+v.tip.toFixed(2)+' (gratuity)\n';}
-  txt+='\nPayment due: '+fmtD(due)+'\n';
-  if(pay){txt+='Payment method: '+pay+'\n';}
-  txt+='\nTo pay:\n  Zelle: [YOUR ZELLE]\n  Venmo: @[YOUR VENMO]\n  CashApp: $[YOUR CASHAPP]\n\n';
-  txt+='Thank you for your business!\n\nDarsh Patel\nBay Area Auto Care\n415-717-9895\nbayareaautocare.co\n\nClean. Protect. Elevate.';
-  navigator.clipboard.writeText(txt).then(function(){
-    var c=g('copied');c.style.display='block';setTimeout(function(){c.style.display='none';},4000);
-  }).catch(function(){alert(txt);});
-});
+  var fmtD=function(s){if(!s){return 'upon receipt';}var d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});};
+
+  var subject='Bay Area Auto Care - Invoice '+num;
+
+  var lineList=items.filter(function(it){return it.d;}).map(function(it){
+    return (it.q>1?it.q+'x ':'')+it.d+' - $'+(it.q*it.p).toFixed(2);
+  }).join('%0A');
+
+  var body='Hi '+custName.split(' ')[0]+',%0A%0A';
+  body+='Thank you for choosing Bay Area Auto Care! Here is your invoice.%0A%0A';
+  body+='INVOICE '+num+'%0A';
+  body+='================================%0A';
+  if(veh){body+='Vehicle: '+veh+'%0A';}
+  body+='%0ASERVICES:%0A'+lineList+'%0A%0A';
+  body+='TOTAL BREAKDOWN:%0A';
+  body+='  Subtotal:    $'+v.sub.toFixed(2)+'%0A';
+  if(v.disc>0){body+='  Discount:    -$'+v.disc.toFixed(2)+'%0A';}
+  body+='  Tax ('+v.taxR+'%25):  $'+v.tax.toFixed(2)+'%0A';
+  body+='  ──────────────────────%0A';
+  body+='  TOTAL DUE:  $'+v.total.toFixed(2)+'%0A';
+  if(v.tip>0){body+='  Tip (gratuity): $'+v.tip.toFixed(2)+'%0A';}
+  body+='%0APayment due: '+fmtD(due)+'%0A';
+  if(pay){body+='Payment method: '+pay+'%0A';}
+  body+='%0APAYMENT OPTIONS:%0A';
+  body+='  Zelle:    bayareaautocare.info@gmail.com%0A';
+  body+='  Venmo:    @BayAreaAutoCare%0A';
+  body+='  CashApp:  $BayAreaAutoCare%0A';
+  body+='%0AThank you for your business!%0A%0A';
+  body+='Darsh Patel%0ABay Area Auto Care%0A415-717-9895%0Abayareaautocare.co%0A%0AClean. Protect. Elevate.';
+
+  var url='https://mail.google.com/mail/?view=cm&fs=1';
+  if(custEmail){url+='&to='+encodeURIComponent(custEmail);}
+  url+='&su='+encodeURIComponent(subject);
+  url+='&body='+body;
+  window.open(url,'_blank');
+});;
 ['f_num','f_date','f_due','f_status','f_name','f_phone','f_email','f_addr','f_veh','f_notes','f_terms','f_disc','f_tax','f_tip','f_pay'].forEach(function(id){
   g(id).addEventListener('input',draw);g(id).addEventListener('change',draw);
 });
