@@ -38,7 +38,7 @@ body{font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;min-height:100vh
 
 /* PRINT */
 @media print{
-  @page{margin:0;size:letter portrait;}
+  @page{margin:0mm;size:letter portrait;}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box;}
   .top-bar,.panel,.actions,.preview-label,.print-hint{display:none!important;}
   body{background:#fff!important;padding:0!important;margin:0!important;}
@@ -130,12 +130,10 @@ body{font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;min-height:100vh
   <button class="btn btn-s" id="clearBtn">Clear</button>
 </div>
 <div class="print-hint" id="printHint">
-  In the print dialog that opens:<br/>
-  1. Set <strong style="color:#fff">Destination</strong> &rarr; <strong style="color:#fff">Save as PDF</strong><br/>
-  2. Click <strong style="color:#fff">More settings</strong><br/>
-  3. Uncheck <strong style="color:#fff">Headers and footers</strong> (removes date/URL)<br/>
-  4. Check <strong style="color:#4ADE80">Background graphics</strong> (keeps black header &amp; blue bar)<br/>
-  5. Click <strong style="color:#fff">Save</strong>
+  In the print dialog:<br/>
+  1. <strong style="color:#4ADE80">Check Background graphics</strong> &rarr; restores black header &amp; blue bar<br/>
+  2. Set <strong style="color:#fff">Margins</strong> &rarr; <strong style="color:#fff">None</strong> &rarr; removes white space<br/>
+  3. Click <strong style="color:#fff">Save</strong>
 </div>
 </div>
 <div class="preview-wrap">
