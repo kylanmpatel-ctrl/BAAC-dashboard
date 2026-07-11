@@ -38,7 +38,7 @@ h1{font-size:18px;font-weight:700;}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
 .preview-wrap{position:sticky;top:16px;}
 .preview-label{font-size:10px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
-.preview-card{background:#fff;color:#000;border-radius:10px;overflow:hidden;box-shadow:0 16px 50px rgba(0,0,0,0.6);}
+.preview-card{background:#fff;color:#000;border-radius:10px;overflow:hidden;box-shadow:0 16px 50px rgba(0,0,0,0.6);min-height:200px;}
 
 /* Mobile */
 @media(max-width:768px){
@@ -275,7 +275,8 @@ function draw(){
   if(pay){h+='<div style="font-size:10px;color:#888;margin-top:4px;">via '+esc(pay)+'</div>';}
   h+='</div></div>';
   h+='<div class="inv-bottom">CLEAN. PROTECT. ELEVATE. &nbsp;&bull;&nbsp; BAYAREAAUTOCARE.CO</div>';
-  g('preview').innerHTML=h;
+  var el=g('preview');
+  if(el){el.innerHTML=h;}
 }
 
 function toggleForm(){
@@ -327,7 +328,22 @@ function fallbackDownload(blob,fname){
   setTimeout(function(){URL.revokeObjectURL(url);},1000);
 }
 
-g('addLineBtn').addEventListener('click',function(){items.push({d:'',q:1,p:0});buildLines();draw();});
+['addLineBtn','printBtn','imgBtn','clearBtn','emailBtn'].forEach(function(id){
+  var el=g(id); if(!el){return;}
+  if(id==='addLineBtn'){el.addEventListener('click',function(){items.push({d:'',q:1,p:0});buildLines();draw();});}
+  if(id==='printBtn'){el.addEventListener('click',function(){window.print();});}
+  if(id==='imgBtn'){el.addEventListener('click',function(){saveImg();});}
+  if(id==='clearBtn'){el.addEventListener('click',function(){
+    if(!confirm('Clear all?')){return;}
+    ['f_name','f_phone','f_email','f_addr','f_veh','f_notes'].forEach(function(id2){var e=g(id2);if(e){e.value='';}});
+    var disc=g('f_disc');if(disc){disc.value='0';}
+    var tip=g('f_tip');if(tip){tip.value='0';}
+    var tax=g('f_tax');if(tax){tax.value='8.5';}
+    var st=g('f_status');if(st){st.value='Unpaid';}
+    var py=g('f_pay');if(py){py.value='';}
+    items=[{d:'',q:1,p:0}]; buildLines(); draw();
+  });}
+});
 g('printBtn').addEventListener('click',function(){window.print();});
 g('imgBtn').addEventListener('click',function(){saveImg();});
 g('clearBtn').addEventListener('click',function(){
@@ -368,7 +384,7 @@ g('emailBtn').addEventListener('click',function(){
 ['f_num','f_date','f_due','f_status','f_name','f_phone','f_email','f_addr','f_veh','f_notes','f_terms','f_disc','f_tax','f_tip','f_pay']
   .forEach(function(id){var el=g(id); if(el){el.addEventListener('input',draw);el.addEventListener('change',draw);}});
 
-(function init(){
+function runInit(){
   var t=new Date(), d=new Date(); d.setDate(d.getDate()+14);
   var pad=function(n){return n<10?'0'+n:n;};
   g('f_date').value=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
@@ -376,8 +392,14 @@ g('emailBtn').addEventListener('click',function(){
   g('f_num').value='INV-'+(1000+Math.floor(Math.random()*900));
   g('f_notes').value='Thank you for choosing Bay Area Auto Care! It was a pleasure serving you.';
   g('f_terms').value='Payment due by the date above. We accept Zelle, Venmo, CashApp, card, and cash.';
-  buildLines(); draw();
-})();
+  buildLines();
+  draw();
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', runInit);
+} else {
+  runInit();
+}
 </script>
 </body>
 </html>
