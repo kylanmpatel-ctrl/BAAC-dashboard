@@ -522,7 +522,7 @@ function BookingModal(props){
       setBmLoading(false);
     }).catch(function(){setBmLoading(false);});
   },[]);
-  var initF={custId:'',isNew:true,newName:'',newPhone:'',newEmail:'',vehYear:'',vehMake:'',vehModel:'',vehColor:'',serviceId:'',addOns:'',date:'',time:'09:00',dur:90,empId:'',status:'Confirmed',notes:'',recurring:'None',price:0,tax:0,deposit:0,tip:0,total:0,payStatus:'Unpaid',payMethod:''};
+  var initF={custId:'',isNew:true,newName:'',newPhone:'',newEmail:'',vehYear:'',vehMake:'',vehModel:'',vehColor:'',serviceId:'',addOns:'',date:'',time:'09:00',dur:90,empIds:[],status:'Confirmed',notes:'',recurring:'None',price:0,tax:0,deposit:0,tip:0,total:0,payStatus:'Unpaid',payMethod:''};
   var fS=useState(initF);
   var f=fS[0];
   var setF=fS[1];
@@ -573,7 +573,7 @@ function BookingModal(props){
       }
     }
     var svc=DB.find('services',f.serviceId);
-    var emp=f.empId?DB.find('employees',f.empId):null;
+    var empNames=(f.empIds||[]).map(function(id){var em=DB.find('employees',id);return em?em.name:'';}).filter(Boolean);
     var dt=new Date(f.date+'T'+(f.time||'09:00'));
     DB.add('bookings',{
       custId:custId,
@@ -582,7 +582,8 @@ function BookingModal(props){
       addOns:f.addOns,
       date:dt.toISOString(),
       dur:f.dur,
-      emp:emp?emp.name:'--',
+      emp:empNames.length?empNames.join(', '):'--',
+      empIds:f.empIds||[],
       status:f.status,
       notes:f.notes,
       price:parseFloat(f.price)||0,
@@ -680,7 +681,26 @@ function BookingModal(props){
       e(Fld,{t:t,label:'Date',req:true},e(Inp,{t:t,type:'date',value:f.date,onChange:function(ev){upd('date',ev.target.value);}})),
       e(Fld,{t:t,label:'Time'},e(Inp,{t:t,type:'time',value:f.time,onChange:function(ev){upd('time',ev.target.value);}})),
       e(Fld,{t:t,label:'Duration (min)'},e(Inp,{t:t,type:'number',value:f.dur,onChange:function(ev){upd('dur',ev.target.value);}})),
-      e(Fld,{t:t,label:'Assign Employee'},e(Sel,{t:t,value:f.empId,onChange:function(ev){upd('empId',ev.target.value);},options:empOpts}))
+      e(Fld,{t:t,label:'Assign Employees (select all that apply)'},
+        e('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginTop:2}},
+          emps.filter(function(em){return em.active!==false;}).map(function(em){
+            var checked=(f.empIds||[]).indexOf(em.id)>=0;
+            return e('label',{key:em.id,style:{display:'flex',alignItems:'center',gap:6,padding:'6px 10px',borderRadius:7,border:'1px solid '+(checked?t.acc:t.border),background:checked?t.accS:t.surf2,cursor:'pointer',fontSize:12,color:checked?t.acc:t.txt,fontWeight:checked?600:400}},
+              e('input',{type:'checkbox',checked:checked,onChange:function(){
+                setF(function(prev){
+                  var n=Object.assign({},prev);
+                  var ids=(n.empIds||[]).slice();
+                  var idx=ids.indexOf(em.id);
+                  if(idx>=0){ids.splice(idx,1);}else{ids.push(em.id);}
+                  n.empIds=ids;
+                  return n;
+                });
+              },style:{width:13,height:13}}),
+              em.name
+            );
+          })
+        )
+      )
     ),
     e(Divider,{t:t}),
     e('div',{style:{fontWeight:700,fontSize:13,color:t.txt,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}},'Payment'),
@@ -1227,9 +1247,26 @@ function Bookings(props){
                 e(Fld,{t:t,label:'Duration (min)'},
                   e(Inp,{t:t,type:'number',value:editBk.dur||'',onChange:function(ev){setEditBk(function(p){var n=Object.assign({},p);n.dur=ev.target.value;return n;});}})
                 ),
-                e(Fld,{t:t,label:'Employee'},
-                  e(Sel,{t:t,value:editBk.emp||'',onChange:function(ev){setEditBk(function(p){var n=Object.assign({},p);n.emp=ev.target.value;return n;});},
-                    options:DB.get('employees').map(function(em){return {value:em.name,label:em.name};})})
+                e(Fld,{t:t,label:'Employees (select all that apply)'},
+                  e('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginTop:2}},
+                    DB.get('employees').filter(function(em){return em.active!==false;}).map(function(em){
+                      var names=(editBk.emp||'').split(', ').filter(Boolean);
+                      var checked=names.indexOf(em.name)>=0;
+                      return e('label',{key:em.id,style:{display:'flex',alignItems:'center',gap:6,padding:'6px 10px',borderRadius:7,border:'1px solid '+(checked?t.acc:t.border),background:checked?t.accS:t.surf2,cursor:'pointer',fontSize:12,color:checked?t.acc:t.txt,fontWeight:checked?600:400}},
+                        e('input',{type:'checkbox',checked:checked,onChange:function(){
+                          setEditBk(function(p){
+                            var n=Object.assign({},p);
+                            var ns=(n.emp||'').split(', ').filter(Boolean);
+                            var i=ns.indexOf(em.name);
+                            if(i>=0){ns.splice(i,1);}else{ns.push(em.name);}
+                            n.emp=ns.join(', ')||'--';
+                            return n;
+                          });
+                        },style:{width:13,height:13}}),
+                        em.name
+                      );
+                    })
+                  )
                 )
               ),
               e(Divider,{t:t}),
